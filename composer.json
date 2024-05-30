@@ -1,0 +1,21 @@
+{
+    "name": "danielsnell/picotimber",
+    "require": {
+        "timber/timber": "^2.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Danielsnell\\Picotimber\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "artisan"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
+    }
+}

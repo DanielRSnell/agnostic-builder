@@ -1,0 +1,219 @@
+<script>
+  // Inside modifications.js
+  class PageInitializer {
+    constructor() {
+      document.addEventListener('DOMContentLoaded', this.handleLoad.bind(this))
+    }
+  
+    handleLoad() {
+      this.checkForResponsiveToolbar()
+      this.updateResponsiveToolbar()
+    }
+  
+    checkForResponsiveToolbar() {
+      const toolbar = document.getElementById('responsive-toolbar')
+      if (toolbar) {
+        console.log('#responsive-toolbar found.')
+      } else {
+        console.log('#responsive-toolbar not found.')
+      }
+    }
+  
+    updateResponsiveToolbar() {
+      const mappings = [
+        { label: 'xs', className: 'add-xs-preview', screenSize: '475px', wrapSize: '1080px', icon: 'fa-mobile' },
+        { label: 'sm', className: 'add-sm-preview', screenSize: '640px', wrapSize: '1080px', icon: 'fa-mobile fa-rotate-90' },
+        { label: 'md', className: 'add-md-preview', screenSize: '768px', wrapSize: '1080px', icon: 'fa-tablet' },
+        { label: 'lg', className: 'add-lg-preview', screenSize: '1024px', wrapSize: '1080px', icon: 'fa-tablet fa-rotate-90' },
+        { label: 'xl', className: 'add-xl-preview', screenSize: '1280px', wrapSize: '1080px', icon: 'fa-desktop' },
+        { label: '2xl', className: 'add-2xl-preview', screenSize: '1536px', wrapSize: '1080px', icon: 'fa-television' }
+      ]
+  
+      const toolbar = document.getElementById('responsive-toolbar')
+      if (!toolbar) {
+        console.log('No responsive toolbar to update.')
+        return
+      }
+  
+      // Remove all existing links from the toolbar
+      while (toolbar.firstChild) {
+        toolbar.removeChild(toolbar.firstChild)
+      }
+  
+      // Create new links based on the mappings
+      mappings.forEach((mapping) => {
+        const link = document.createElement('a')
+        const screenWidth = parseInt(mapping.screenSize)
+        const wrapWidth = parseInt(mapping.wrapSize)
+  
+        link.setAttribute('data-width', mapping.screenSize.split('px').join(''))
+  
+        if (screenWidth < 1080) {
+          // const height =  Math.floor((window.innerHeight - 45));
+          // link.setAttribute('data-height', height);
+        } else {
+          const scale = wrapWidth / screenWidth
+          const wrap = document.getElementById('previewiframe-wrap')
+          const wrapHeight = wrap.offsetHeight
+  
+          link.setAttribute('data-height', wrapHeight + 45)
+        }
+  
+        link.classList.add(mapping.className)
+  
+        const icon = document.createElement('i')
+        icon.classList.add('fa', ...mapping.icon.split(' ')) // Add the corresponding icon class
+        link.appendChild(icon)
+  
+        link.appendChild(document.createTextNode(` ${mapping.label.toUpperCase()}`))
+        toolbar.appendChild(link)
+      })
+  
+      console.log('#responsive-toolbar updated with Tailwind CSS breakpoints, screen sizes, and scaled heights.')
+    }
+  
+    addConfirmButtonListener() {
+      document.addEventListener('click', this.handleConfirmButtonClick.bind(this))
+      console.log('Confirm button listener added using event delegation.')
+    }
+  
+    handleConfirmButtonClick(event) {
+      if (event.target.matches('.swal-button--confirm')) {
+        console.log('Confirm button clicked. Updating sections and blocks...')
+        this.appendSections()
+        this.appendBlocks()
+      }
+    }
+  }
+  
+  new PageInitializer()
+  
+  // Add event listener to the responsive toolbar links
+  $(document).ready(function () {
+    const toolbar = $('#responsive-toolbar')
+  
+    if (toolbar.length) {
+      toolbar.on('click', 'a', handleToolbarClick)
+    }
+  })
+  
+  function handleToolbarClick(event) {
+    const link = $(this)
+    const previewWrap = $('#previewiframe-wrap')
+    const previewIframe = $('#previewiframe')
+    const htmlEditorWindow = $('.lc-html-editor-window')
+  
+    if (previewWrap.length && previewIframe.length && htmlEditorWindow.length) {
+      applyPreviewStyles(link, previewWrap, previewIframe)
+      adjustHtmlEditorMargin(previewWrap, htmlEditorWindow)
+      logAppliedStyles(link)
+    }
+  }
+  
+  function applyPreviewStyles(link, previewWrap, previewIframe) {
+    // Remove all inline styles
+    previewWrap.removeAttr('style')
+    previewIframe.removeAttr('style')
+  
+    const screenWidth = parseInt(link.attr('data-width'))
+    const screenHeight = parseInt(link.attr('data-height'))
+    const wrapWidth = 1080
+    let scale = 1
+  
+    if (screenWidth > wrapWidth) {
+      scale = wrapWidth / screenWidth
+    }
+  
+    previewWrap.css('width', `${wrapWidth}px`)
+    previewIframe.css('width', `${screenWidth}px`)
+    previewIframe.css('transform', `scale(${scale})`)
+  
+    // Calculate the height of the iframe based on the wrap height and scale factor
+    const wrapHeight = previewWrap.height()
+    const iframeHeight = wrapHeight / scale
+    previewIframe.css('height', `${iframeHeight}px`)
+  
+    // scale(${scale}) translateX(-50%) to style.transform
+    previewIframe.css('transform', `scale(${scale}) translateX(-50%)`)
+  
+    if (screenWidth < wrapWidth) {
+      previewWrap.css({
+        display: 'flex',
+        'justify-content': 'center',
+        'align-items': 'center',
+        height: `${wrapHeight}px`
+      })
+    } else {
+      preview.attr('test-attr', 'test-value')
+      previewWrap.css({
+        display: 'block',
+        height: 'auto'
+      })
+    }
+  }
+  
+  function adjustHtmlEditorMargin(previewWrap, htmlEditorWindow) {
+    // Check the width of lc-html-editor-window
+    const htmlEditorWidth = htmlEditorWindow.width()
+    const htmlEditorParentWidth = htmlEditorWindow.parent().width()
+    const htmlEditorWidthPercentage = (htmlEditorWidth / htmlEditorParentWidth) * 100
+  
+    if (htmlEditorWidthPercentage === 40) {
+      previewWrap.css('margin-right', '0')
+    } else {
+      previewWrap.css('margin-right', '')
+    }
+  }
+  
+  function logAppliedStyles(link) {
+    const screenWidth = parseInt(link.attr('data-width'))
+    const screenHeight = parseInt(link.attr('data-height'))
+    console.log(`Applied styles for screen size: ${screenWidth}x${screenHeight}`)
+  }
+</script>
+
+<style>
+  :root {
+    --scale-factor: 0.703125; /* 1080 / 1536 = 0.703125 */
+  }
+  
+  #previewiframe-wrap {
+    max-width: 1080px;
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden; /* To hide any overflow from the iframe */
+    height: calc((100vh - 45px) / var(--scale-factor));
+    /* z-index: 100; */
+    position: relative;
+    background: var(--editor-200);
+    /* z-index: 700 !important; */
+  }
+  
+  #previewiframe-wrap > #previewiframe {
+    width: 1536px;
+    max-height: 100%;
+    transform: scale(var(--scale-factor));
+    transform-origin: top left;
+    height: calc(100% / var(--scale-factor));
+    background: var(--editor-100);
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: scale(var(--scale-factor)) translateX(-50%);
+    z-index: 10;
+  }
+  
+  /* Media query for screen sizes between 1352px and 1512px */
+  @media (min-width: 1352px) and (max-width: 1512px) {
+    :root {
+      --scale-factor: calc(677 / 1536); /* Dynamically calculate the scale factor */
+    }
+    #previewiframe-wrap {
+      max-width: 677px;
+    }
+    #previewiframe-wrap > #previewiframe {
+      transform: scale(var(--scale-factor)) translateX(-50%);
+      height: calc(100% / var(--scale-factor));
+    }
+  }
+</style>

@@ -1,0 +1,114 @@
+<div id="debug-manager">
+  <div class="debug-manager__content">
+    <div class="debug-manager__code">
+      <!-- Ace Editor Container -->
+      <div id="data-inspector"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function updateInspectorData() {
+    const frame = document.getElementById('previewiframe')
+    const frameDoc = frame.contentDocument || frame.contentWindow.document
+    const stateData = frameDoc.getElementById('state-data').textContent.trim()
+    console.log('STATE DATA: ', stateData)
+    window.data_editor.setValue(stateData)
+    var totalLines = window.data_editor.session.getLength()
+    console.log('TOTAL LINES: ', totalLines)
+    window.data_editor.session.foldAll(1, totalLines)
+  }
+  
+  function toggleEditorData() {
+    console.log('editor', window.inspector_data)
+  
+    const inspectorBox = document.getElementById('inspector-box')
+  
+    if (inspectorBox && inspectorBox.classList.contains('min')) {
+      window.inspector_data.restore()
+      updateInspectorData()
+      inspectorBox.classList.remove('min')
+    } else {
+      window.inspector_data.minimize()
+      if (inspectorBox) {
+        inspectorBox.classList.add('min')
+      }
+    }
+  }
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    var container = document.getElementById('debug-manager')
+  
+    window.update_inspector_data = updateInspectorData
+    window.inspector_data = new WinBox({
+      id: 'inspector-box',
+      title: 'Data Inspector',
+      border: 4,
+      width: 325,
+      height: 350,
+      top: 395,
+      closed: true,
+      mount: container,
+      onfocus: function () {
+        this.setBackground('#00aa00')
+      },
+      onblur: function () {
+        this.setBackground('#777')
+      },
+      onresize: function () {
+        if (window.data_inspector) {
+          window.data_inspector.resize()
+        }
+      },
+      onrestore: () => {
+        // Remove event listener when restored
+        document.removeEventListener('click', handleWindowClick)
+      }
+    })
+  
+    function handleWindowClick(event) {
+      const target = event.target
+      if (target.classList.contains('wb-minimized')) {
+        // Restore the WinBox if the minimized box is clicked
+        window.inspector_data.restore()
+      }
+    }
+  
+    var aceDataInspector = ace.edit('data-inspector')
+    aceDataInspector.setTheme('ace/theme/tomorrow_night_bright')
+    aceDataInspector.session.setMode('ace/mode/json')
+    aceDataInspector.setReadOnly(true)
+    aceDataInspector.setOptions({
+      showPrintMargin: false,
+      highlightActiveLine: false,
+      wrap: true,
+      useSoftTabs: false,
+      showGutter: false
+    })
+  
+    window.data_editor = aceDataInspector
+  })
+</script>
+
+<style>
+  .debug-manager__content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .debug-manager__header {
+    padding: 10px;
+    background-color: #f0f0f0;
+  }
+  
+  .debug-manager__code {
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  #data-inspector {
+    height: 100%;
+    width: 100%;
+  }
+</style>
