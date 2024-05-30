@@ -49,23 +49,45 @@ class LayoutObserver {
     this.adjustSidePanelDisplay();
   }
 
+setEditorWrapWidth(width) {
+  const lcHtmlEditor = lc_html_editor;
+  // Get the lc_html_editor's container element
+  const editorContainer = lcHtmlEditor.containerElement; // Adjust if the property name is different
+
+  // Apply the new width to the container
+  editorContainer.style.width = width;
+
+  // Optionally, you may want to resize the editor to fit the new container size
+  lcHtmlEditor.resize();
+}
+
 setEditorWindowSliderStyle() {
-  // Calculate the width of the editor window based on the difference between body width and #previewiframe width
-  const previewIframe = document.getElementById("previewiframe");
-  const previewIframeWidth = parseFloat(getComputedStyle(previewIframe).width);
+  // Get the previewiframe element
+  const previewIframe = document.getElementById("previewiframe-wrap");
+  // Calculate the maximum width of the previewiframe
+  const previewIframeMaxWidth = previewIframe.scrollWidth;
+  
+  // Get the body width
   const bodyWidth = parseFloat(getComputedStyle(document.body).width);
-  const editorWindowWidth = bodyWidth - (previewIframeWidth * 0.98);
 
-  console.log('editorWindowWidth', `max-height: 100vh; display: block; height: calc(100% - var(--maintoolbar-height) - 0px) !important; width: ${editorWindowWidth}px !important; z-index: 999`);
+  // Calculate the editor window width
+  const editorWindowWidth = bodyWidth - (previewIframeMaxWidth);
 
+  console.log('previewIframeMaxWidth', previewIframeMaxWidth);
+  console.log('bodyWidth', bodyWidth);
+  
+  
+  // Set the style of the editor window
   this.editorWindow.style.cssText = `
     max-height: 100vh;
     display: block;
     height: calc(100% - var(--maintoolbar-height) - 0px) !important;
-    width: ${editorWindowWidth} !important;
+    width: ${editorWindowWidth * .92}px !important;
     z-index: 999;
   `;
+    
 }
+
 
   adjustSidePanelDisplay() {
     const sidePanelStyle = getComputedStyle(this.sidePanel);
@@ -89,11 +111,16 @@ setEditorWindowSliderStyle() {
   hideElementGroup() {
     window.tweaks.minimize();
     window.inspector_data.minimize();
+    // document.querySelector('#tree-window').style.display = 'none'
+    // $('#query-container').css('display', 'none')
   }
 
   showElementGroup() {
     window.tweaks.restore() 
-    window.inspector_data.restore()
+    // window.inspector_data.restore()
+    // // remove displays from the style attribute
+    // document.querySelector('#tree-window').style.removeProperty('display')
+    // $('#query-container').css('display', 'block')
 
   }
 

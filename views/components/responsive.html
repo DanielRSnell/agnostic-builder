@@ -174,19 +174,17 @@
 
 <style>
   :root {
-    --scale-factor: 0.703125; /* 1080 / 1536 = 0.703125 */
+    --scale-factor: 0.6371527777777778; /* 980 / 1536 = 0.6371527777777778 */
   }
   
   #previewiframe-wrap {
-    max-width: 1080px;
+    max-width: 980px;
     width: 100%;
     margin: 0 auto;
     overflow: hidden; /* To hide any overflow from the iframe */
     height: calc((100vh - 45px) / var(--scale-factor));
-    /* z-index: 100; */
     position: relative;
     background: var(--editor-200);
-    /* z-index: 700 !important; */
   }
   
   #previewiframe-wrap > #previewiframe {
