@@ -1,0 +1,270 @@
+<div id="resource-container" x-data="{
+  tab: null,
+  onChangeTab(selected) {
+    // If the selected tab is the same as the current tab set it to null
+    this.tab = selected === this.tab ? null : selected;
+  }
+}">
+  <div>
+    <div id="tree-head" class="hidden" x-show="tab === null || tab === 'attributes'" x-on:click="onChangeTab('attributes')">
+      <div id="box-title">
+        <span>Attributes</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'attributes'" x-collapse>
+      <div>Attributes</div>
+    </div>
+
+    <div id="tree-head"  class="hidden"  x-show="tab === null || tab === 'blocks'" x-on:click="onChangeTab('blocks')">
+      <div id="box-title">
+        <span>Blocks</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'blocks'" x-collapse>
+      <div>Blocks</div>
+    </div>
+
+    <div id="tree-head"  class="hidden" x-show="tab === null || tab === 'components'" x-on:click="onChangeTab('components')">
+      <div id="box-title">
+        <span>Components</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'components'" x-collapse>
+      <div>Components</div>
+    </div>
+
+    <div id="tree-head"  class="hidden"  x-show="tab === null || tab === 'tailwind'" x-on:click="onChangeTab('tailwind')">
+      <div id="box-title">
+        <span>Tailwind Cheetsheet</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'tailwind'" x-collapse>
+      <div>Tailwind Cheetsheet</div>
+    </div>
+
+    <div id="tree-head" x-show="tab === null || tab === 'content'" x-on:click="onChangeTab('content')">
+      <div id="box-title">
+        <span>Populate Content</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    {{ include('components/resource/populate.html') }}
+
+    <div id="tree-head"  class="hidden"  x-show="tab === null || tab === 'navigate'" x-on:click="onChangeTab('navigate')">
+      <div id="box-title">
+        <span>Navigate</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'navigate'" x-collapse>
+      <div>Navigate</div>
+    </div>
+
+    <div id="tree-head"  class="hidden" x-show="tab === null || tab === 'css'" x-on:click="onChangeTab('css')">
+      <div id="box-title">
+        <span>Page CSS</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'css'" x-collapse>
+      <div>Page CSS</div>
+    </div>
+
+    <div id="tree-head"  class="hidden" x-show="tab === null || tab === 'javascript'" x-on:click="onChangeTab('javascript')">
+      <div id="box-title">
+        <span>Javascript</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'javascript'" x-collapse>
+      <div>Javascript</div>
+    </div>
+
+    <div id="tree-head"  class="hidden" x-show="tab === null || tab === 'dynamic'" x-on:click="onChangeTab('dynamic')">
+      <div id="box-title">
+        <span>Dynamic Data Cheetsheet</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'dynamic'" x-collapse>
+      <div>Dynamic Data Cheetsheet</div>
+    </div>
+
+    <div id="tree-head"  class="hidden" x-show="tab === null || tab === 'settings'" x-on:click="onChangeTab('settings')">
+      <div id="box-title">
+        <span>Settings</span>
+      </div>
+      <div class="editor-actions">
+        <a href="#" id="editor-sort" class="open-media-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.1717 12.0005L9.34326 9.17203L10.7575 7.75781L15.0001 12.0005L10.7575 16.2431L9.34326 14.8289L12.1717 12.0005Z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div x-show="tab === 'settings'" x-collapse>
+      <div>Settings</div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .editor-container {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .editor-content > .ace_content {
+    padding: 10px !important;
+  }
+
+  .hidden {
+    display: none!important;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Function to initialize Ace Editor
+    function initAceEditor(element) {
+      window.attribute_editor = ace.edit(element)
+      // make editor transparent
+      window.attribute_editor.setTheme('ace/theme/tomorrow_night_bright')
+      attribute_editor.setOptions({
+        showPrintMargin: false,
+        highlightActiveLine: false,
+        showPrintMargin: false,
+        wrap: true,
+        mode: 'ace/mode/twig',
+        tabSize: 0,
+        useSoftTabs: false,
+        // enable autocomplete
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        enableEmmet: true,
+        showGutter: true,
+        enableSnippets: true,
+        enableAutoIndent: false,
+        indentedSoftWrap: false, // Add this line to disable indented soft wrapping
+        displayIndentGuides: false // Add this line to hide indentation guides
+      })
+  
+      const editorElement = window.attribute_editor.container
+      editorElement.style.paddingLeft = '10px'
+      editorElement.style.marginLeft = '0'
+      // remove indentions from editor
+      window.attribute_editor.setOption('enableAutoIndent', false)
+      window.attribute_editor.renderer.setScrollMargin(18, 18)
+      // set margin x axis
+      window.attribute_editor.renderer.setPadding(10)
+  
+      return attribute_editor
+    }
+  
+    const container = document.getElementById('resource-container')
+  
+    // Initialize WinBox with Ace Editor
+    window.resource_box = new WinBox({
+      title: 'Resources',
+      border: 4,
+      width: window.winbox_width,
+      height: '300',
+      minheight: 300,
+      minwidth: 300,
+      top: 660,
+      left: 0,
+      right: 0,
+      bottom: 45,
+      mount: container,
+      onfocus: function () {
+        this.setBackground('#00aa00')
+      },
+      onblur: function () {
+        this.setBackground('#777')
+      }
+    })
+    window.resource_box.restore()
+    // Initialize Ace Editor inside the WinBox
+    const editor = initAceEditor(document.getElementById('editor'))
+  
+    function getDirectText(selector) {
+      const element = doc.querySelector(selector)
+      let text = ''
+      for (let node of element.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          text += node.textContent
+        }
+      }
+      return text
+        .trim()
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replace(/\s+/g, ' ') // Remove zero-width characters and replace multiple spaces/newlines with a single space
+    }
+  
+    function updateDirectTextNodes(element, newText) {
+      for (let node of element.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.textContent = newText
+        }
+      }
+    }
+  })
+</script>

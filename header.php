@@ -29,11 +29,20 @@ if (apply_filters('picostrap_enable_header_elements', true)):
         get_template_part('partials/header', 'optional-topbar');
         get_template_part('partials/header', 'navbar');
     } else {
-        $header = '{{ partial("header", state, "lc_partial") }}';
+        $header = '[lc_get_post post_type="lc_partial" slug="header"]';
+        $header = do_shortcode($header);
 
-        // Compile the content as a Twig template
-        echo do_shortcode('[twig]' . $header . '[/twig]');
+        // Get the current post type
+        $current_post_type = get_post_type();
 
+        // Check if the current post type is not lc_partial, lc_block, or lc_section
+        if (!in_array($current_post_type, array('lc_partial', 'lc_block', 'lc_section'))) {
+
+            // Compile the content as a Twig template only if the post type is not excluded
+            echo do_shortcode('[twig]' . $header . '[/twig]');
+        } else {
+            // Don't display header if the post type is lc_partial, lc_block, or lc_section
+        }
     }
 
 endif;

@@ -4,3 +4,112 @@
 {{ include('components/class-manager.html') }}
 {{ include('components/tree-view.html') }}
 {{ include('components/responsive.html') }}
+{{ include('components/text-manager.html') }}
+{{ include('components/resource-manager.html') }}
+
+<div id="media-modal" class="modal hidden">
+ <iframe id="media-iframe" frameborder="0" scrolling="auto" marginwidth="0" marginheight="0"></iframe>
+</div>
+
+<style>
+ .modal {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-color: rgba(0, 0, 0, 0.5);
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   z-index: 100;
+   visibility: hidden;
+   z-index: 999999999999999;
+ }
+ 
+ .modal.visible {
+   visibility: visible;
+ }
+ 
+ #media-iframe {
+   width: 80%;
+   height: 80%;
+   border: none;
+   border-radius: 1rem;
+   overflow: hidden;
+ }
+ 
+ #close-modal {
+   padding: 10px 20px;
+   background-color: #ccc;
+   border: none;
+   cursor: pointer;
+ }
+</style>
+
+<script>
+const openMediaButton = document.querySelector('.open-media-modal');
+const mediaModal = document.getElementById('media-modal');
+const mediaIframe = document.getElementById('media-iframe');
+
+openMediaButton.addEventListener('click', () => {
+ const currentDomain = window.location.origin;
+ const mediaUrl = `${currentDomain}/wp-admin/media.php?page=lc-media-selector`;
+ mediaIframe.src = mediaUrl;
+ mediaModal.classList.add('visible');
+
+ mediaIframe.addEventListener('load', () => {
+   try {
+     const iframeDocument = mediaIframe.contentDocument || mediaIframe.contentWindow.document;
+     const mediaToolbar = iframeDocument.querySelector('.media-frame-toolbar');
+     const closeButton = iframeDocument.querySelector('.media-modal-close');
+
+     if (mediaToolbar) {
+       mediaToolbar.style.display = 'none';
+     }
+
+     if (closeButton) {
+       closeButton.style.display = 'none';
+     }
+
+     console.log('Applied styles to iframe elements');
+   } catch (error) {
+     console.error('Failed to apply styles to iframe elements:', error);
+   }
+ });
+});
+
+mediaModal.addEventListener('click', (event) => {
+ if (event.target === mediaModal) {
+   closeModal();
+ }
+});
+
+mediaIframe.addEventListener('click', (event) => {
+ event.stopPropagation();
+});
+
+document.addEventListener('keydown', (event) => {
+ if (event.key === 'Escape') {
+   closeModal();
+ }
+});
+
+function closeModal() {
+ mediaModal.classList.remove('visible');
+ mediaIframe.src = '';
+}
+</script>
+
+<script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
+
+<script>
+function formatHTML(html) {
+  const formattedHTML = prettier.format(html, {
+    parser: 'html',
+    plugins: [prettierPlugins.html]
+  });
+  return formattedHTML;
+}
+</script>

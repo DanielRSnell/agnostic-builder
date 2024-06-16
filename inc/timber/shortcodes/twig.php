@@ -65,27 +65,68 @@ add_action('wp_ajax_lc_process_dynamic_templating_twig', 'lc_process_dynamic_tem
 function lc_process_dynamic_templating_twig_func()
 {
     if (!current_user_can("edit_pages")) {
-        return;
+        echo "You don't have permission to perform this action.";
+        wp_die();
     }
-    //Only for editors
+
     define("LC_DOING_DYNAMIC_TEMPLATE_TWIG_RENDERING", 1);
-    $input = stripslashes($_POST['shortcode']);
-    global $post;
-    $post = get_post($_POST['post_id']);
-    //determine which kind of template we're in
-    foreach (get_post_meta($_POST['post_id']) as $meta_key => $meta_value) {
-        if (substr($meta_key, 0, 3) == 'is_' && $meta_value[0] == 1) {
-            break;
+
+    try {
+        $input = stripslashes($_POST['shortcode']);
+        global $post;
+        $post = get_post($_POST['post_id']);
+
+        // Determine which kind of template we're in
+        foreach (get_post_meta($_POST['post_id']) as $meta_key => $meta_value) {
+            if (substr($meta_key, 0, 3) == 'is_' && $meta_value[0] == 1) {
+                break;
+            }
         }
+
+        // Get the settings data from the POST request
+        $settings = json_decode(stripslashes($_POST['settings']), true);
+
+        // Initialize an array to store the shortcode attributes
+        $shortcode_attributes = array();
+
+        // Check each attribute value and add non-null values to the shortcode attributes array
+        if (!empty($settings)) {
+            // add settings object
+            if (isset($settings['content_type']) && $settings['content_type'] !== null) {
+                $shortcode_attributes['content_type'] = $settings['content_type'];
+            }
+            if (isset($settings['selection_type']) && $settings['selection_type'] !== null) {
+                $shortcode_attributes['selection_type'] = $settings['selection_type'];
+            }
+            if (isset($settings['single_id']) && $settings['single_id'] !== null) {
+                $shortcode_attributes['single_id'] = $settings['single_id'];
+            }
+            if (isset($settings['search']) && $settings['search'] !== null) {
+                $shortcode_attributes['search'] = $settings['search'];
+            }
+        }
+
+        // Build the [twig] shortcode with the populated attributes
+        $twig_shortcode = '[twig trigger="process"';
+        foreach ($shortcode_attributes as $attribute => $value) {
+            $twig_shortcode .= ' ' . $attribute . '="' . $value . '"';
+        }
+        $twig_shortcode .= ']' . $input . '<script
+          type="application/json"
+          id="state-data"
+        >
+          {{ function("json_encode", state, constant("JSON_PRETTY_PRINT")) | raw }}
+        </script>[/twig]';
+
+        // Process the Twig shortcode
+        $output = do_shortcode($twig_shortcode);
+
+        echo $output;
+    } catch (Exception $e) {
+        error_log("Error in lc_process_dynamic_templating_twig_func: " . $e->getMessage());
+        echo $input;
     }
-    // Process Twig shortcode
-    $output = do_shortcode('[twig]' . $input . '<script
-  type="application/json"
-  id="state-data"
->
-  {{ function("json_encode", state, constant("JSON_PRETTY_PRINT")) | raw }}
-</script>[/twig]');
-    echo $output;
+
     wp_die();
 }
 
@@ -193,35 +234,144 @@ function twig_shortcode($atts, $content = null)
     $context = Timber::context();
     $context['is_editor'] = is_admin() && current_user_can('edit_others_posts');
     $context['attributes'] = $atts;
-    $context['singular'] = is_singular();
-    $context['archive'] = is_archive();
-    $context['tax'] = is_tax() || is_category() || is_tag();
+    $context['singular'] = false;
+    $context['archive'] = false;
+    $context['tax'] = false;
     $context['editor'] = false;
 
-    // Check if it's a single post
-    if ($context['singular']) {
-        $context['post'] = Timber::get_post($post->ID);
-    }
+    // Check if shortcode attributes are provided
+    if (isset($atts['content_type'])) {
+        switch ($atts['content_type']) {
+            case 'archive':
+                $context['archive'] = true;
+                if (isset($atts['selection_type'])) {
+                    $post_type = $atts['selection_type'];
+                    $context['preview'] = true;
+                    $context['archive'] = array(
+                        'title' => do_shortcode('[lc_the_archive_title]'),
+                        'description' => do_shortcode('[lc_the_archive_description]'),
+                    );
+                    $args = array(
+                        'post_type' => $post_type,
+                        'numberposts' => 6,
+                    );
+                    $context['posts'] = Timber::get_posts($args);
+                }
+                break;
+            case 'single':
+                $context['singular'] = true;
+                if (isset($atts['selection_type']) && isset($atts['single_id'])) {
+                    $post_id = intval($atts['single_id']);
+                    $post_type = $atts['selection_type'];
+                    $context['preview'] = true;
+                    $context['post'] = Timber::get_post($post_id);
+                    $related_posts = array(
+                        'post_type' => $post_type,
+                        'numberposts' => 3,
+                        'post__not_in' => array($post_id),
+                    );
+                    $context['related'] = Timber::get_posts($related_posts);
+                }
+                break;
+            case 'tax':
+                $context['tax'] = true;
+                if (isset($atts['selection_type']) && isset($atts['single_id'])) {
+                    $term_id = intval($atts['single_id']);
+                    $taxonomy = $atts['selection_type'];
+                    $term = get_term($term_id, $taxonomy);
+                    $context['preview'] = true;
+                    $context['term'] = Timber::get_term($term);
+                    // Get posts related to the term
+                    $context['posts'] = Timber::get_posts(array(
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => $taxonomy,
+                                'field' => 'id',
+                                'terms' => $term_id,
+                            ),
+                        ),
+                    ));
+                    $related_terms = array(
+                        'taxonomy' => $taxonomy,
+                        'number' => 5,
+                        'exclude' => $term_id,
+                    );
+                    $context['related_terms'] = Timber::get_terms($related_terms);
+                }
+                break;
+            case 'search':
+                $context['search'] = true;
+                if (isset($atts['search_query'])) {
+                    $search_query = $atts['search_query'];
+                    $context['preview'] = true;
+                    $context['search_query'] = $search_query;
+                    $args = array(
+                        's' => $search_query,
+                        'posts_per_page' => 6,
+                    );
+                    $context['posts'] = Timber::get_posts($args);
+                }
+                break;
+        }
+    } else {
+        // If no shortcode attributes are provided, use the default behavior
+        // Check if it's a single post
+        if (is_singular()) {
+            $context['singular'] = true;
+            $context['post'] = Timber::get_post($post->ID);
+            $related_posts = array(
+                'post_type' => $post->post_type,
+                'numberposts' => 3,
+                'post__not_in' => array($post->ID),
+            );
+            $context['related'] = Timber::get_posts($related_posts);
+        }
 
-    // Check if it's a term archive
-    if ($context['tax']) {
-        $term = get_queried_object();
-        $context['term'] = Timber::get_term($term);
-    }
+        // Check if it's a term archive
+        if (is_tax() || is_category() || is_tag()) {
+            $context['tax'] = true;
+            $term = get_queried_object();
+            $context['term'] = Timber::get_term($term);
+            if (is_tag()) {
+                $related_tags = get_tags(array(
+                    'number' => 5,
+                    'exclude' => $term->term_id,
+                ));
+                $context['related_tags'] = Timber::get_terms($related_tags);
+            } else {
+                $related_terms = array(
+                    'taxonomy' => $term->taxonomy,
+                    'number' => 5,
+                    'exclude' => $term->term_id,
+                );
+                $context['related_terms'] = Timber::get_terms($related_terms);
+            }
+        }
 
-    // Check if it's a general archive (e.g., date archive, author archive)
-    if ($context['archive']) {
-        $context['archive'] = array(
-            'title' => get_the_archive_title(),
-            'description' => get_the_archive_description(),
-            'posts' => Timber::get_posts(),
-        );
-    }
+        // Check if it's a general archive (e.g., date archive, author archive)
+        if (is_archive()) {
+            $context['archive'] = array(
+                'title' => do_shortcode('[lc_the_archive_title]'),
+                'description' => do_shortcode('[lc_the_archive_description]'),
+            );
+            $archive_type = get_query_var('post_type');
+            if (is_date()) {
+                $archive_type = 'date';
+            } elseif (is_author()) {
+                $archive_type = 'author';
+            }
+            $related_posts = array(
+                'post_type' => $archive_type,
+                'numberposts' => 3,
+            );
+            $context['related'] = Timber::get_posts($related_posts);
+        }
 
-    // if singular, tax, and archive = false, then default to single
-    if (!$context['singular'] && !$context['tax'] && !$context['archive']) {
-        $context['editor'] = true;
-        $context['post'] = Timber::get_post($post->ID);
+        // If singular, tax, and archive = false, then default to single
+        if (!$context['singular'] && !$context['tax'] && !$context['archive']) {
+            $context['editor'] = true;
+            $context['post'] = Timber::get_post($post->ID);
+        }
     }
 
     // Add the additional context data

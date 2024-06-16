@@ -5,6 +5,7 @@ add_filter('timber/locations', function ($paths) {
 
     // Example for adding other specific paths
     $paths['helper'] = [$theme_directory . '/inc/helpers'];
+    $paths['svg'] = [$theme_directory . '/template-livecanvas-svgs'];
 
     return $paths;
 });

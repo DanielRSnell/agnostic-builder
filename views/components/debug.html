@@ -1,21 +1,33 @@
-<div id="debug-manager">
+<div id="debug-manager" x-data="{mode: 'json'}">
+  <div id="tree-head">
+    <div id="box-title">
+      <span>Data Manager</span>
+    </div>
+    <div class="editor-actions">
+      <a href="#" x-on:click=" mode = 'json'">JSON</a>
+      {# <a href="#" x-on:click=" mode = 'visual'">Easy Select</a> #}
+    </div>
+  </div>
   <div class="debug-manager__content">
-    <div class="debug-manager__code">
+    <div class="debug-manager__code" x-show="mode == 'json'">
       <!-- Ace Editor Container -->
       <div id="data-inspector"></div>
     </div>
+    {# <div class="debug-manager__code" x-show="mode == 'visual'">
+      Something here.
+      </div> #}
   </div>
 </div>
 
 <script>
   function updateInspectorData() {
-    const frame = document.getElementById('previewiframe')
-    const frameDoc = frame.contentDocument || frame.contentWindow.document
-    const stateData = frameDoc.getElementById('state-data').textContent.trim()
-    console.log('STATE DATA: ', stateData)
-    window.data_editor.setValue(stateData)
+    if (!window.data_editor) {
+      return
+    }
+  
+    window.data_editor.setValue(JSON.stringify(window.context, null, 2))
     var totalLines = window.data_editor.session.getLength()
-    console.log('TOTAL LINES: ', totalLines)
+    // console.log('TOTAL LINES: ', totalLines)
     window.data_editor.session.foldAll(1, totalLines)
   }
   
@@ -44,9 +56,11 @@
       id: 'inspector-box',
       title: 'Data Inspector',
       border: 4,
-      width: 325,
-      height: 350,
-      top: 395,
+      width: 400,
+      height: 400,
+      top: 45,
+      right: 35,
+      x: 'center',
       closed: true,
       mount: container,
       onfocus: function () {
@@ -66,6 +80,8 @@
       }
     })
   
+    window.inspector_data.minimize()
+  
     function handleWindowClick(event) {
       const target = event.target
       if (target.classList.contains('wb-minimized')) {
@@ -83,7 +99,9 @@
       highlightActiveLine: false,
       wrap: true,
       useSoftTabs: false,
-      showGutter: false
+      showGutter: true,
+      // make it foldable
+      foldStyle: 'markbegin'
     })
   
     window.data_editor = aceDataInspector

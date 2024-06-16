@@ -34,7 +34,6 @@
         <div
             x-if="helper.type === 'data'"
             class="element__toolbar-item"
-            x-on:click="updateInspectorData()"
             :class="'add-' + helper.type + '-block'"
             :data-tippy-content="helper.tooltip"
         >
@@ -111,14 +110,14 @@
       layout: [
         { type: 'section', icon: 'layout-accordion-separated', tooltip: 'Section' },
         { type: 'container', icon: 'layout-grid2', tooltip: 'Container' },
+        { type: 'div', icon: 'html5', tooltip: 'Div' },
+        { type: 'block', icon: 'layout-width-default-alt', tooltip: 'Block' },
         { type: 'grid', icon: 'layout-grid2-thumb', tooltip: 'Grid' },
         { type: 'column', icon: 'layout-column3', tooltip: 'Column' },
         { type: 'row', icon: 'layout-column3-alt', tooltip: 'Row' }
       ],
       basicElements: [
-        { type: 'block', icon: 'layout-width-default-alt', tooltip: 'Block' },
         { type: 'basic', icon: 'align-justify', tooltip: 'Basic' },
-        { type: 'text', icon: 'text', tooltip: 'Text' },
         { type: 'paragraph', icon: 'align-justify', tooltip: 'Paragraph' },
         { type: 'heading', icon: 'text', tooltip: 'Heading' },
         { type: 'button', icon: 'control-stop', tooltip: 'Button' },
@@ -156,14 +155,13 @@ function insertBlock(type) {
     
     switch(type) {
         case 'section':
-            insertSection();
+            blockHTML = "<section data-canvas-block='section'></section>";
             return; // Exit the function since section is handled separately
         case 'container':
             blockHTML = "<div class='container' data-canvas-block='container'></div>";
             $('.close-sidepanel').click();
             break;
         case 'data':
-            console.log('Data block clicked')
             updateInspectorData();
             break;
         case 'block':
@@ -172,7 +170,7 @@ function insertBlock(type) {
         case 'basic':
             blockHTML = '<span  data-canvas-block="basic">This is a span</span>';
             break;
-        case 'text':
+        case 'div':
             blockHTML = '<div  data-canvas-block="text"></div>';
             break;
         case 'paragraph':
@@ -185,7 +183,7 @@ function insertBlock(type) {
             blockHTML = '<button data-canvas-block="button">Get Started</button>';
             break;
         case 'link':
-            blockHTML = '<a href="#" class="link" data-canvas-block="link">This is a link block</a>';
+            blockHTML = '<a href="#" class="link" data-canvas-block="link"></a>';
             break;
         case 'image':
             blockHTML = '<img src="https://placehold.co/600x400/png" alt="Placeholder Image"  data-canvas-block="image">';
@@ -208,6 +206,10 @@ function insertBlock(type) {
         case 'select':
             blockHTML = '<select class="select select-bordered w-full max-w-xs" data-canvas-block="select"><option disabled selected>Select</option><option>Option 1</option><option>Option 2</option></select>';
             break;
+        case 'query':
+            console.log('insertQuery');
+            insertQuery();
+            break;
         case 'row':
             blockHTML = '<div class="flex" data-canvas-block="row">>div></div><div></div></div>';
             break;
@@ -217,9 +219,28 @@ function insertBlock(type) {
     // console all important information when this fires 
     // console.log('insertBlock', type, selector, blockHTML);
     setPageHTML(selector, getPageHTML(selector) + blockHTML);
+    // Emit HTML update event
     updatePreviewSectorial(selector);
+    
+
 }
 
+      function insertQuery() {
+        // insert at the start of main#lc-main
+        var content = doc.querySelector('#lc-main').innerHTML
+        // check if there is other posts-loop
+        var loops = doc.querySelectorAll('[lc-helper="posts-loop"]')
+        // set the index of the one to be inserted
+        var index = loops.length + 1
+        const template = `
+          <template lc-helper="posts-loop" class="live-shortcode">
+            [lc_get_posts post_type="post" posts_per_page="6" output_view="lc_get_posts_listing_view" output_dynamic_view_id="query_${index}"]
+          </template>`
+        doc.querySelector('#lc-main').innerHTML = template + content
+        updatePreviewSectorial('#lc-main')
+      }
+
+// LC Way, to abruptive 
 function insertSection() {
     event.preventDefault();
     $("#sidepanel .close-sidepanel").click();
@@ -241,7 +262,7 @@ function insertSection() {
     }
     
     var selector = CSSelector(previewFrame.contents().find("main section:last")[0]);
-    revealSidePanel("sections", selector);
+    // revealSidePanel("sections", selector);
     $(".sidepanel-tabs a:first").click();
     
     setTimeout(function () {
@@ -256,6 +277,14 @@ $(document).ready(function() {
     // Data block
     $('.add-data-block').click(function() {
        toggleEditorData();
+    });
+    // Query block
+    $('.add-query-block').click(function() {
+        insertQuery();
+    });
+
+    $('.add-div-block').click(function() {
+        insertBlock('div');
     });
 
     $('.add-container-block').click(function() {

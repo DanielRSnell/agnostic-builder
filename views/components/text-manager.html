@@ -1,0 +1,157 @@
+<div id="editorContainer">
+  <div id="tree-head">
+    <div id="box-title">
+      <span>HTML</span>
+    </div>
+    <div class="editor-actions">
+      <a href="#" id="editor-toggle" class="toggle-block" onclick="onToggleBlock()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M13 1L13.001 4.06201C16.6192 4.51365 19.4869 7.38163 19.9381 11L23 11V13L19.938 13.001C19.4864 16.6189 16.6189 19.4864 13.001 19.938L13 23H11L11 19.9381C7.38163 19.4869 4.51365 16.6192 4.06201 13.001L1 13V11L4.06189 11C4.51312 7.38129 7.38129 4.51312 11 4.06189L11 1H13ZM12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6ZM12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10Z"></path>
+        </svg>
+      </a>
+      <a href="#" id="editor-save" class="save-block" onclick="onSaveBlock()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 5V19H19V7.82843L16.1716 5H5ZM4 3H17L20.7071 6.70711C20.8946 6.89464 21 7.149 21 7.41421V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3ZM12 18C10.3431 18 9 16.6569 9 15C9 13.3431 10.3431 12 12 12C13.6569 12 15 13.3431 15 15C15 16.6569 13.6569 18 12 18ZM6 6H15V10H6V6Z"></path>
+        </svg>
+      </a>
+      <a href="#" id="editor-code" onclick="openPicoHTMLEditor()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M24 12L18.3431 17.6569L16.9289 16.2426L21.1716 12L16.9289 7.75736L18.3431 6.34315L24 12ZM2.82843 12L7.07107 16.2426L5.65685 17.6569L0 12L5.65685 6.34315L7.07107 7.75736L2.82843 12ZM9.78845 21H7.66009L14.2116 3H16.3399L9.78845 21Z"></path>
+        </svg>
+      </a>
+      <a href="#" id="editor-sort" class="open-media-modal">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M15 8V4H5V20H19V8H15ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918ZM11 9.5C11 10.3284 10.3284 11 9.5 11C8.67157 11 8 10.3284 8 9.5C8 8.67157 8.67157 8 9.5 8C10.3284 8 11 8.67157 11 9.5ZM17.5 17L13.5 10L8 17H17.5Z"></path>
+        </svg>
+      </a>
+    </div>
+  </div>
+  <div class="editor-container">
+    <div id="editor" class="editor-content" style="height: 100%; width: 100%; padding-block: 1rem;"></div>
+  </div>
+</div>
+
+<style>
+  .editor-container {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .editor-content > .ace_content {
+    padding: 10px !important;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Function to initialize Ace Editor
+    function initAceEditor(element) {
+      window.content_editor = ace.edit(element)
+      // make editor transparent
+      window.content_editor.setTheme('ace/theme/tomorrow_night_bright')
+      content_editor.setOptions({
+        showPrintMargin: false,
+        highlightActiveLine: false,
+        showPrintMargin: false,
+        wrap: true,
+        mode: 'ace/mode/twig',
+        tabSize: 0,
+        useSoftTabs: false,
+        // enable autocomplete
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        enableEmmet: true,
+        showGutter: true,
+        enableSnippets: true,
+        enableAutoIndent: false,
+        indentedSoftWrap: false, // Add this line to disable indented soft wrapping
+        displayIndentGuides: false // Add this line to hide indentation guides
+      })
+  
+      const editorElement = window.content_editor.container
+      editorElement.style.paddingLeft = '10px'
+      editorElement.style.marginLeft = '0'
+      // remove indentions from editor
+      window.content_editor.setOption('enableAutoIndent', false)
+      window.content_editor.renderer.setScrollMargin(18, 18)
+      // set margin x axis
+      window.content_editor.renderer.setPadding(10)
+  
+      return content_editor
+    }
+  
+    const container = document.getElementById('editorContainer')
+  
+    // Initialize WinBox with Ace Editor
+    window.content_box = new WinBox({
+      title: 'Content Manager',
+      border: 4,
+      width: window.winbox_width,
+      height: '300',
+      minheight: 300,
+      minwidth: 400,
+      top: 360,
+      left: 0,
+      right: 0,
+      bottom: 45,
+      mount: container,
+      onfocus: function () {
+        this.setBackground('#00aa00')
+      },
+      onblur: function () {
+        this.setBackground('#777')
+      }
+    })
+    window.content_box.restore()
+    // Initialize Ace Editor inside the WinBox
+    const editor = initAceEditor(document.getElementById('editor'))
+  
+    function getDirectText(selector) {
+      const element = doc.querySelector(selector)
+      let text = ''
+      for (let node of element.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          text += node.textContent
+        }
+      }
+      return text
+        .trim()
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replace(/\s+/g, ' ') // Remove zero-width characters and replace multiple spaces/newlines with a single space
+    }
+  
+    function updateDirectTextNodes(element, newText) {
+      for (let node of element.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          node.textContent = newText
+        }
+      }
+    }
+  
+    window.content_editor.getSession().on('change', function () {
+      if ($('#lc-html-editor-window').attr('prevent_live_update') == '1') return
+      myConsoleLog('React to html editor change')
+  
+      var selector = window.active_selector
+      var new_html = window.content_editor.getValue()
+  
+      // Store previous_html inside the function (or use data attribute on element)
+      var previous_html = doc.querySelector(selector).outerHTML
+  
+      console.log('EQUAL COMPARING: ', 'new_html:', new_html, 'previous_html:', previous_html)
+      console.log('ARE THEY EQUAL: ', new_html === previous_html)
+  
+      if (new_html !== previous_html) {
+        // Replace outerHTML of the selected element
+        doc.querySelector(selector).innerHTML = html_beautify(new_html)
+  
+        setTimeout(() => {
+          processTwigElements()
+          updatePreviewActiveItems()
+        }, 10)
+      } else {
+        console.log('No changes detected')
+      }
+    })
+  })
+</script>

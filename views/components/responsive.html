@@ -117,24 +117,18 @@
   
     const screenWidth = parseInt(link.attr('data-width'))
     const screenHeight = parseInt(link.attr('data-height'))
-    const wrapWidth = 1080
+    const wrapWidth = previewWrap.width()
+    const wrapHeight = previewWrap.height()
     let scale = 1
   
     if (screenWidth > wrapWidth) {
       scale = wrapWidth / screenWidth
     }
   
-    previewWrap.css('width', `${wrapWidth}px`)
     previewIframe.css('width', `${screenWidth}px`)
+    previewIframe.css('height', `${screenHeight}px`)
     previewIframe.css('transform', `scale(${scale})`)
-  
-    // Calculate the height of the iframe based on the wrap height and scale factor
-    const wrapHeight = previewWrap.height()
-    const iframeHeight = wrapHeight / scale
-    previewIframe.css('height', `${iframeHeight}px`)
-  
-    // scale(${scale}) translateX(-50%) to style.transform
-    previewIframe.css('transform', `scale(${scale}) translateX(-50%)`)
+    previewIframe.css('transform-origin', 'top left')
   
     if (screenWidth < wrapWidth) {
       previewWrap.css({
@@ -144,7 +138,6 @@
         height: `${wrapHeight}px`
       })
     } else {
-      preview.attr('test-attr', 'test-value')
       previewWrap.css({
         display: 'block',
         height: 'auto'
@@ -174,7 +167,7 @@
 
 <style>
   :root {
-    --scale-factor: 0.6371527777777778; /* 980 / 1536 = 0.6371527777777778 */
+    --scale-factor: 0.6371527777777778;
   }
   
   #previewiframe-wrap {

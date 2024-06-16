@@ -2,20 +2,24 @@
   <div class="editor-tweak">
     <div id="tree-head">
       <div id="box-title">
-        Selected: <span id="selected-tag"></span>
+        Selected: {{ include('components/element-select.html') }}
       </div>
       <div class="editor-actions">
+        <a href="#" id="editor-toggle" class="toggle-block" onclick="onToggleBlock()">
+         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 1L13.001 4.06201C16.6192 4.51365 19.4869 7.38163 19.9381 11L23 11V13L19.938 13.001C19.4864 16.6189 16.6189 19.4864 13.001 19.938L13 23H11L11 19.9381C7.38163 19.4869 4.51365 16.6192 4.06201 13.001L1 13V11L4.06189 11C4.51312 7.38129 7.38129 4.51312 11 4.06189L11 1H13ZM12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6ZM12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10Z"></path></svg>
+        </a>
+        <a href="#" id="editor-save" class="save-block" onclick="onSaveBlock()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 5V19H19V7.82843L16.1716 5H5ZM4 3H17L20.7071 6.70711C20.8946 6.89464 21 7.149 21 7.41421V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3ZM12 18C10.3431 18 9 16.6569 9 15C9 13.3431 10.3431 12 12 12C13.6569 12 15 13.3431 15 15C15 16.6569 13.6569 18 12 18ZM6 6H15V10H6V6Z"></path></svg>
+        </a>
         <a href="#" id="editor-code" onclick="openPicoHTMLEditor()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M24 12L18.3431 17.6569L16.9289 16.2426L21.1716 12L16.9289 7.75736L18.3431 6.34315L24 12ZM2.82843 12L7.07107 16.2426L5.65685 17.6569L0 12L5.65685 6.34315L7.07107 7.75736L2.82843 12ZM9.78845 21H7.66009L14.2116 3H16.3399L9.78845 21Z"></path>
           </svg>
-          HTML
         </a>
         <a href="#" id="editor-sort" onclick="sortPicoClasses()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 3L23 8H20V20H18V8H15L19 3ZM14 18V20H3V18H14ZM14 11V13H3V11H14ZM12 4V6H3V4H12Z"></path>
           </svg>
-          Sort
         </a>
       </div>
     </div>
@@ -91,13 +95,15 @@
 
   .editor-actions {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
     justify-content: center;
     align-items: center;
   }
 
   #editor-code,
-  #editor-sort {
+  #editor-sort,
+  #editor-save,
+  #editor-toggle {
     display: flex;
     gap: 8px;
     justify-content: center;
@@ -105,7 +111,9 @@
   }
 
   #editor-code svg,
-  #editor-sort svg {
+  #editor-sort svg,
+  #editor-save svg,
+  #editor-toggle svg {
     width: 1rem;
     height: 1rem;
   }
@@ -113,7 +121,10 @@
   .editor-content {
     flex: 1;
     overflow: auto;
-    padding-block: 10px;
+  }
+
+  #editor-tweak > .ace_content {
+    padding: 10px;
   }
 
   #lc-tweak-editor {
@@ -137,10 +148,6 @@
     color: var(--color-prop-icons);
     border-bottom: 1px solid color-mix(in srgb, var(--color-interface-bg-dark) 80%, grey);
     align-items: center;
-  }
-
-  #editor-tweak-container .ace-tomorrow-night-bright {
-    background: transparent!important;
   }
 
   #editor-bottom-bar a {
@@ -175,9 +182,9 @@
         var content = container.innerHTML;
         // Get current view port height 80% of the screen
         window.tweaks = new WinBox({
-            title: 'Editor Tweak',
+            title: 'Class Manager',
              border: 4,
-            width: 325,
+            width: window.winbox_width,
             height: 350,
             minheight: 300,
             minwidth: 100,
@@ -205,7 +212,7 @@
                
                 window.tweaks.restore();
             }
-            }
+        }
 
         var lc_tweak_editor = ace.edit("lc-tweak-editor");
         var Emmet = ace.require("ace/ext/emmet");
@@ -219,9 +226,14 @@
             useSoftTabs: false,
             tabSize: 4,
             enableEmmet: false,
-            showGutter: false 
+            showGutter: false,
+            enableSnippets: false
         });
 
+        // padding-block for editor 10px
+        lc_tweak_editor.renderer.setScrollMargin(18, 18)
+        // set margin x axis
+        lc_tweak_editor.renderer.setPadding(10)
         // lc_tweak_editor.setFontSize(16);
         lc_tweak_editor.setTheme('ace/theme/tomorrow_night_bright');
 
@@ -244,9 +256,9 @@
 
        lc_tweak_editor.completers.push({
             getCompletions: async (editor, session, pos, prefix, callback) => {
-                console.log('Completion:', prefix);
+     
                 const frame = document.getElementById('previewiframe');
-                const frameWindow = frame.contentWindow;
+                const frameWindow = frame.contentWindow || frame.contentDocument;
 
                 const alpine_autocompletes = [
                     {
@@ -347,7 +359,7 @@
                 // Get /wp-json/acf/v1/fields
                 // each item has name, key, label, type
                 const request = await fetch('/wp-json/acf/v1/fields');
-
+                
                 if (request.ok) {
                     const response = await request.json();
                     
@@ -373,17 +385,16 @@
                     response.forEach(field => processField(field, ''));
                 }
 
-
-
-
-                
-
-                if (frameWindow.siul) {
+               if (frameWindow.siul) {
                     try {
                         var completions = await siulAutocomplete(prefix, frameWindow);
+                        console.log(completions, 'Yabe Siul Completions');
                         var completions = completions.concat(alpine_autocompletes);
                         var completions = completions.concat(acf_completions);
                         var completions = completions.concat(window.global_autocompletes);
+                        var completions = completions.concat(window.context_completions);
+                        console.log('Check completions:', completions);
+
                         callback(null, completions);
                     } catch (error) {
                         console.error('Error with siul autocomplete:', error);
@@ -391,7 +402,7 @@
                         var completions = completions.concat(alpine_autocompletes);
                         var completions = completions.concat(acf_completions);
                         var completions = completions.concat(window.global_autocompletes);
-
+                        var completions = completions.concat(window.context_completions);
                         callback(null, completions);
                     }
                 } else {
@@ -399,7 +410,7 @@
                     var completions = completions.concat(alpine_autocompletes);
                     var completions = completions.concat(acf_completions);
                     var completions = completions.concat(window.global_autocompletes);
-
+                    var completions = completions.concat(window.context_completions);
                     callback(null, completions);
                 }
             }
@@ -907,7 +918,6 @@ function simplifySelector(selector) {
     return simplifiedParts.join(' > ');
 }
 
-// Function to update the selected tag in the box title
 function updateSelectedTag() {
   const selectedTag = document.getElementById('selected-tag');
   if (window.active_selector) {
@@ -915,26 +925,109 @@ function updateSelectedTag() {
     const parentDoc = parentFrame.contentDocument || parentFrame.contentWindow.document;
     const selectedElement = parentDoc.querySelector(window.active_selector);
     if (selectedElement) {
-      selectedTag.textContent = selectedElement.tagName.toLowerCase();
+      selectedTag.value = selectedElement.tagName.toLowerCase();
     } else {
-      selectedTag.textContent = '';
+      selectedTag.value = '';
     }
   } else {
-    selectedTag.textContent = '';
+    selectedTag.value = '';
   }
 }
 
-// Call the updateSelectedTag function whenever window.active_selector changes
-Object.defineProperty(window, 'active_selector', {
-  set: function(value) {
-    this._active_selector = value;
-    updateSelectedTag();
-  },
-  get: function() {
-    return this._active_selector;
-  }
-});
+
+
+
+    // Call the updateSelectedTag function whenever window.active_selector changes
+    Object.defineProperty(window, 'active_selector', {
+    set: function(value) {
+        this._active_selector = value;
+        updateSelectedTag();
+    },
+    get: function() {
+        return this._active_selector;
+    }
     });
 
-      
+});
+
+function onSaveBlock() {
+        const manager = ace.require('ace/snippets').snippetManager;
+
+        var html = getPageHTML(window.active_selector);
+        swal({
+            text: 'Enter a descriptive name...',
+            content: "input",
+            button: {
+                text: "Save",
+                closeModal: true,
+            },
+        }).then(name => {
+            if (!name) throw null;
+            libraryStoreBlock('lc_block', name, html);
+            swal.stopLoading();
+            swal.close();
+            registerThemeSnippets(manager);
+        });
+     }
+   function libraryStoreBlock(post_type, post_title, post_content) {
+        $.post(
+            lc_editor_saving_url, {
+            'action': 'lc_save_element',
+            'post_type': post_type,
+            'post_title': post_title,
+            'post_content': '\n' + html_beautify(post_content, {
+                unformatted: ['script', 'style'],
+                "indent_size": "1",
+                "indent_char": "\t",
+            }) + '\n',
+            'lc_main_save_nonce_field': $("#lc_main_save_nonce_field").val(),
+        },
+            function (response) {
+                //console.log('The server responded: ', response);
+                if (response.includes("Save")) {
+                    //success  
+                    swal({ title: "Added to library", icon: "success" });
+                } else {
+                    //(rare) Error!
+                    swal({ title: "Saving error (b)", icon: "warning", text: response });
+                }
+            }
+        )
+            //.done(function(msg){  })
+            .fail(function (xhr, status, error) {
+                // (typical, eg unlogged) Error!
+                swal({ title: "Saving error", icon: "warning", text: error });
+            });
+
+    }
+
+    function changeElTag() {
+        const selectedTag = document.getElementById('selected-tag');
+        const selectedValue = selectedTag.value;
+        console.log('Selected tag:', selectedValue);
+    }
+    
+function onToggleBlock() {
+    // click the active_selector
+    const activeSelector = window.active_selector;
+    const previewFrame = document.getElementById('previewiframe');
+    const previewContent = previewFrame.contentWindow || previewFrame.contentDocument;
+
+    if (previewContent) {
+        const element = previewContent.document.querySelector(activeSelector);
+        if (element) {
+            console.log(element, activeSelector, 'TOGGLE OPTION');
+            // if the element type is image
+            if (element.tagName.toLowerCase() === 'img') {
+                // set lc-helper="image" to the element
+                element.setAttribute('lc-helper', 'image');
+
+                setTimeout(() => {
+                    element.click();
+                }, 10);
+            }
+            
+        }
+    }
+}
 </script>

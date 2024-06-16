@@ -1,7 +1,7 @@
 <div id="tree-window" class="treebox-container">
   <div class="relative-treebox-container">
     <div class="tree-box">
-      <div class="window-container" style="margin: 0; z-index: 0; width: 100%">
+      <div id="tree-body-container" class="window-container" style="margin: 0; z-index: 0; width: 100%">
         <div id="tree-head">
           <span>
             <a href="#" id="tree-expand-all">Expand All</a>
@@ -23,14 +23,15 @@
       const rootSelector = 'body' // Replace with the appropriate selector for the root element
       const treeHTML = renderTreeHTMLStructure(rootSelector)
       treeBoxContainer.innerHTML = treeHTML
-  
-      // Programmatically click the tree-expand-all element
-      const expandAllButton = treeBoxContainer.querySelector('.tree-expand-all')
-      if (expandAllButton) {
-        expandAllButton.click()
-      } else {
-        console.warn('Expand all button not found')
-      }
+      setTimeout(() => {
+        // Programmatically click the tree-expand-all element
+        const expandAllButton = document.querySelector('#tree-expand-all')
+        if (expandAllButton) {
+          expandAllButton.click()
+        } else {
+          console.warn('Expand all button not found')
+        }
+      }, 100)
     } else {
       console.error('Tree box container not found')
     }
@@ -73,17 +74,17 @@
   
   // 350 width on default
   
-  .window-container {
-    // remove scrollbar
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    overflow-x: auto;
-    width: 325px;
-  }
-  
-  .window-container::-webkit-scrollbar {
-    display: none;
-  }
+  /* .window-container {
+                                  // remove scrollbar
+                                  scrollbar-width: none;
+                                  -ms-overflow-style: none;
+                                  overflow-x: auto;
+                                  width: 325px;
+                                }
+                                
+                                .window-container::-webkit-scrollbar {
+                                  display: none;
+                                } */
   
   /* Tree Window */
   #tree-window > .window-container {
@@ -99,15 +100,16 @@
   #tree-body {
     height: calc(100% - 1rem);
     overflow: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    margin-right: 52px;
+    /* scrollbar-width: none;
+                            -ms-overflow-style: none; */
     background-color: var(--color-interface-bg-dark);
     padding-bottom: 1.5rem; /* Added bottom padding */
   }
   
-  #tree-body::-webkit-scrollbar {
-    display: none;
-  }
+  /* #tree-body::-webkit-scrollbar {
+                            display: none;
+                          } */
   
   /* Tree Head */
   #tree-head {
