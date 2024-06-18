@@ -236,3 +236,41 @@ function modify_lc_main_html_content()
 
 // Hook the custom function into wp_head to ensure it runs before the content is echoed
 add_action('wp_head', 'modify_lc_main_html_content');
+
+add_filter('content_save_pre', 'do_not_sanitize_alpine_attr_in_content');
+
+function do_not_sanitize_alpine_attr_in_content($content)
+{
+    // List out all Alpine.js directives, magics, and globals
+    $alpine_attributes = [
+        // Directives
+        'x-data', 'x-init', 'x-show', 'x-bind', 'x-on', 'x-text', 'x-html', 'x-model', 'x-modelable',
+        'x-for', 'x-transition', 'x-effect', 'x-ignore', 'x-ref', 'x-cloak', 'x-teleport', 'x-if', 'x-id',
+        // Magics
+        '$el', '$refs', '$store', '$watch', '$dispatch', '$nextTick', '$root', '$data', '$id',
+        // Globals
+        'Alpine.data()', 'Alpine.store()', 'Alpine.bind()',
+    ];
+
+    // Use PHP array_filter to check if the current content contains any Alpine.js attributes
+    foreach ($alpine_attributes as $attribute) {
+        $content = preg_replace_callback(
+            "/(\\s$attribute)(\\s*?=\\s*?(\"|')(.*?)(\\3))/",
+            function ($matches) {
+                return htmlspecialchars_decode($matches[0]);
+            },
+            $content
+        );
+    }
+
+    return $content;
+}
+
+add_filter('wp_insert_post_data', 'disable_escaping_on_save', 10, 2);
+function disable_escaping_on_save($data, $postarr)
+{
+    if (isset($data['post_content'])) {
+        $data['post_content'] = str_replace('&amp;&amp;', '&&', $data['post_content']);
+    }
+    return $data;
+}

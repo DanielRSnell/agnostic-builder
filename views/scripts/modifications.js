@@ -3,7 +3,8 @@ window.global_snippets = [];
 window.active_multiselect = [];
 window.context = {};
 window.context_completions = [];
-window.selected_context = {};
+window.selected_context = [];
+window.active_selector = null;
 
 window.winbox_width = 375;
 
@@ -143,22 +144,95 @@ function updatePreviewActiveItems() {
   });
 }
 
+function decodeEntities(encodedString) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = encodedString;
+  return textarea.value;
+}
+
 function generateAttributesContext(element) {
-  // Take the element and count how many attributes other than class and id it has
-  // then make an object of key-value pairs
+  // Take the element and add its attributes (excluding class, id with value 'lc-main', and certain other attributes) as an array of key-value pairs to window.selected_context
   const attributes = element.attributes;
-  const context = {
-    attr_count: 0,
-    attributes: {}
-  };
+  const attributeArray = [];
+
+  const excludedAttributes = [
+    'class',
+    'src',
+    'srcset',
+    'href',
+    'alt',
+    'title',
+    'type',
+    'rel',
+    'target',
+    'width',
+    'height',
+    'style',
+    'data-src',
+    'data-srcset',
+    'sizes',
+    'media',
+    'poster',
+    'preload',
+    'autoplay',
+    'loop',
+    'muted',
+    'controls',
+    'playsinline',
+    'readonly',
+    'disabled',
+    'checked',
+    'selected',
+    'multiple',
+    'required',
+    'placeholder',
+    'autocomplete',
+    'autofocus',
+    'min',
+    'max',
+    'step',
+    'pattern',
+    'maxlength',
+    'minlength',
+    'size',
+    'rows',
+    'cols'
+  ];
+
   for (let i = 0; i < attributes.length; i++) {
     const attr = attributes[i];
-    if (attr.name !== 'class' && attr.name !== 'id') {
-      context.attributes[attr.name] = attr.value;
-      context.attr_count++;
+    if (!excludedAttributes.includes(attr.name) && !(attr.name === 'id' && attr.value === 'lc-main')) {
+      // Decode the attribute value
+      const decodedValue = decodeEntities(attr.value);
+      attributeArray.push({ key: attr.name, value: decodedValue });
     }
   }
-  window.selected_context = context;
+
+  window.selected_context = attributeArray;
+
+  // Update the attribute count span
+  const attributeCountSpan = document.querySelector('.attribute_count');
+  if (attributeCountSpan) {
+    const attributeCount = attributeArray.length;
+    if (attributeCount === 0) {
+      attributeCountSpan.textContent = '';
+    } else {
+      attributeCountSpan.textContent = attributeCount.toString();
+    }
+  }
+
+  // Update the plain attributes editor
+  updatePlainAttributesEditor();
+}
+
+
+function updatePlainAttributesEditor() {
+  const attributeList = window.selected_context.map(attr => {
+    const encodedValue = attr.value;
+    return `${attr.key}="${encodedValue}"`;
+  }).join('\n\n---\n\n');  // Add a double newline to create a blank line between attributes
+
+  plainAttributesAceEditor.setValue(attributeList, -1);
 }
 
 function setManagerSession(targetElement, classes) {
@@ -167,6 +241,7 @@ function setManagerSession(targetElement, classes) {
   window.active_multiselect = [el_selector];
   window.active_selector = el_selector;
   window.active_selector_classes = classes;
+  window.active_attribute = null;
 
  
    
@@ -177,10 +252,12 @@ function setManagerSession(targetElement, classes) {
   } else {
     // Set outerHTML to the editor
     trueElement.outerHTML = html_beautify(trueElement.outerHTML);
+    // replace &amp;&amp; with &&
+    const cleanHTML = html_beautify(trueElement.innerHTML).replace(/&amp;&amp;/g, '&&');
+    window.content_editor.setValue(cleanHTML);
     
-    window.content_editor.setValue(html_beautify(trueElement.innerHTML));
-    generateAttributesContext(trueElement);
   }
+    generateAttributesContext(trueElement);
 
     // Check if the sidebar is relevant
     checkRelevantSidebar(el_selector);
@@ -547,6 +624,21 @@ async function registerThemeSnippets(manager) {
     console.error('Error fetching blocks:', error);
   }
 
+   try {
+    const alpineResponse = await fetch('/wp-json/lc/v1/alpine');
+    const alpineData = await alpineResponse.json();
+
+    // Loop over each block item and add them in snippet form
+    alpineData.forEach(block => {
+      const { name, category, component, content } = block;
+      const snippetName = `alpine/${category}/${name}`;
+      const snippet = { ...snippet_form, name: snippetName, content: content };
+      snippets.push(snippet);
+    });
+  } catch (error) {
+    console.error('Error fetching blocks:', error);
+  }
+
   try {
   const menusResponse = await fetch('/wp-json/lc/v1/menu-names');
   const menuNames = await menusResponse.json();
@@ -821,8 +913,11 @@ function render_dynamic_templating_twig() {
       if (typeof twigDocument.startViewTransition === 'function') {
         const transition = twigDocument.startViewTransition(() => {
           const formData = new FormData();
+          const the_html = trueElement.innerHTML.split('[twig]').join('').split('[/twig]').join('');
+          const new_html = the_html.replace(/&amp;&amp;/g, '&&');
+          trueElement.innerHTML = new_html;
           formData.append('action', 'lc_process_dynamic_templating_twig');
-          formData.append('shortcode', trueElement.innerHTML.split('[twig]').join('').split('[/twig]').join(''));
+          formData.append('shortcode', new_html);
           formData.append('post_id', lc_editor_current_post_id);
           formData.append('demo_id', (urlParams.get('demo_id') ?? false));
           formData.append('settings', JSON.stringify(storedSettings));
@@ -886,7 +981,18 @@ document.addEventListener('lcUpdatePreview', function(event) {
 
 // Open the HTML editor
  function openPicoHTMLEditor() {
-            openHtmlEditor(active_selector);
+              $(".close-sidepanel").click();
+              $(".lc-editor-close").click();
+              $("body").addClass("lc-bottom-editor-is-shown");
+              //$("main .lc-shortcode-preview").remove();
+              $("#lc-html-editor-window").attr("selector", window.active_selector);
+              myConsoleLog("Open html editor for: " + window.active_selector);
+              var html = getPageHTML(window.active_selector);
+              const cleanHTML = html.replace(/&amp;&amp;/g, '&&');
+              set_html_editor(cleanHTML);
+              $("#lc-html-editor-window").removeClass("lc-opacity-light").fadeIn(100);
+              lc_html_editor.focus();
+              $("#html-tab").click();
           
             // click lc-editor-slide using vanilla JS
             setTimeout(() => {
@@ -955,15 +1061,20 @@ function attachTreeViewItemListener() {
     if ($(event.target).closest('.tree-view-item').is(this)) {
       var selectorValue = $(this).attr('data-selector');
 
-      // Set data-active-item attribute to the clicked item TODO: Add a check to see if the selector exists
-      // $(this).attr('data-active-item', selectorValue);
+      try {
+        // Get classes of the selector
+        const element = doc.querySelector(selectorValue);
+        const classes = element ? Array.from(element.classList) : [];
 
-      // Get classes of the selector
-      const classes = Array.from(doc.querySelector(selectorValue).classList);
-      const targetEl = doc.querySelector(selectorValue);
-      console.log('TREE VIEW ITEM SELECTED:', selectorValue, classes);
-      setManagerSession(targetEl, classes);
-      window.tweaks.restore();
+        console.log('Tree Selection', element, classes);
+        console.log('TREE VIEW ITEM SELECTED:', selectorValue, classes);
+
+        setManagerSession(element || null, classes);
+        window.tweaks.restore();
+      } catch (error) {
+        console.error('Error occurred during tree view item click:', error);
+        initTreeView();
+      }
     }
   });
 }

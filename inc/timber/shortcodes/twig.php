@@ -385,7 +385,14 @@ function twig_shortcode($atts, $content = null)
     // Clear the additional context data to avoid data leakage
     $additional_context_data = [];
 
-    return $compiled_content;
+    // Apply a custom filter to allow modifications to the compiled content
+    $filtered_content = apply_filters('pre_twig_response_filter', $compiled_content);
+
+    // Replace &amp;&amp; with && using regular expression
+    $unescaped_content = preg_replace('/&amp;&amp;/', '&&', $filtered_content);
+
+    return $unescaped_content;
+
 }
 
 add_shortcode('twig', 'twig_shortcode');

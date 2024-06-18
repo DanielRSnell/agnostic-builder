@@ -11,6 +11,8 @@ function filterPreviewHTML(input) {
         // Wrap lc_ shortcodes
         input = input.replace(/\[lc_([^\]]+)\]/g, "<lc-dynamic-element hidden>[$&");
         input = input.replace(/\[\/lc_([^\]]+)\]/g, "$&</lc-dynamic-element>");
+        // replace &amp;&amp; with &&
+        input = input.replace(/&amp;&amp;/g, "&&");
 
         // remove [twig] tags
         checkQueries()
@@ -18,7 +20,9 @@ function filterPreviewHTML(input) {
         updateEditorStates();
     } else {
         console.log('Not a dynamic template');
-  
+        console.log(input.includes('&&'), '&&');
+        // replace &amp;&amp; with &&
+        input = input.replace(/&amp;&amp;/g, "&&");
         checkQueries()
         processTwigElements(input);
         updateEditorStates();

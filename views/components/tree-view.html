@@ -54,7 +54,9 @@
     padding-bottom: 1.5rem; /* Increased bottom padding */
     display: flex;
   }
-  
+  #toggle-tree-view {
+    display: none !important;
+  }
   .relative-treebox-container {
     position: relative;
     width: 100%;
@@ -75,16 +77,16 @@
   // 350 width on default
   
   /* .window-container {
-                                  // remove scrollbar
-                                  scrollbar-width: none;
-                                  -ms-overflow-style: none;
-                                  overflow-x: auto;
-                                  width: 325px;
-                                }
-                                
-                                .window-container::-webkit-scrollbar {
-                                  display: none;
-                                } */
+                                    // remove scrollbar
+                                    scrollbar-width: none;
+                                    -ms-overflow-style: none;
+                                    overflow-x: auto;
+                                    width: 325px;
+                                  }
+                                  
+                                  .window-container::-webkit-scrollbar {
+                                    display: none;
+                                  } */
   
   /* Tree Window */
   #tree-window > .window-container {
@@ -102,14 +104,14 @@
     overflow: auto;
     margin-right: 52px;
     /* scrollbar-width: none;
-                            -ms-overflow-style: none; */
+                              -ms-overflow-style: none; */
     background-color: var(--color-interface-bg-dark);
     padding-bottom: 1.5rem; /* Added bottom padding */
   }
   
   /* #tree-body::-webkit-scrollbar {
-                            display: none;
-                          } */
+                              display: none;
+                            } */
   
   /* Tree Head */
   #tree-head {
