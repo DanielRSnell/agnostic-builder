@@ -619,7 +619,7 @@ class ImageHelper
         $parts = PathHelper::pathinfo($tmp);
         $result['subdir'] = ($parts['dirname'] === '/') ? '' : $parts['dirname'];
         $result['filename'] = $parts['filename'];
-        $result['extension'] = (isset($parts['extension']) ? \strtolower((string) $parts['extension']) : '');
+        $result['extension'] = (isset($parts['extension'])?\strtolower((string) $parts['extension']) : '');
         $result['basename'] = $parts['basename'];
 
         return $result;
@@ -672,7 +672,7 @@ class ImageHelper
         $site_root = \trailingslashit(\get_theme_root_uri()) . \get_stylesheet();
         $path = \str_replace($site_root, '', $src);
         //$path = \trailingslashit(\get_theme_root()).\get_stylesheet().$path;
-        $path = \get_stylesheet_directory() . $path;
+        $path = \get_template_directory() . $path;
         if ($_path = \realpath($path)) {
             return $_path;
         }
@@ -688,7 +688,7 @@ class ImageHelper
      */
     protected static function is_in_theme_dir($path)
     {
-        $root = \realpath(\get_stylesheet_directory());
+        $root = \realpath(\get_template_directory());
 
         if (false === $root) {
             return false;

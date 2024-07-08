@@ -12,4 +12,7 @@ return array(
     'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
     'Symfony\\Polyfill\\Ctype\\' => array($vendorDir . '/symfony/polyfill-ctype'),
     'Danielsnell\\Picotimber\\' => array($baseDir . '/src'),
+    'Carbon_Fields\\' => array($vendorDir . '/htmlburger/carbon-fields/core'),
+    'Carbon_Field_UrlPicker\\' => array($vendorDir . '/iamntz/carbon-fields-urlpicker/core'),
+    'Carbon_Field_Number\\' => array($vendorDir . '/htmlburger/carbon-field-number/core'),
 );

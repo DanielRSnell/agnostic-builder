@@ -1,6 +1,6 @@
 <?php
 
-$base_dir = get_stylesheet_directory() . '/inc/timber/';
+$base_dir = get_template_directory() . '/inc/timber/';
 
 require $base_dir . 'locations.php';
 

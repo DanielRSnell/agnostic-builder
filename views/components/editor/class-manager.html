@@ -1,0 +1,871 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alpineCompletions =  [
+                    {
+                        caption: 'x-data',
+                        value: 'x-data',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-show',
+                        value: 'x-show',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-bind',
+                        value: 'x-bind',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-on',
+                        value: 'x-on',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-model',
+                        value: 'x-model',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-text',
+                        value: 'x-text',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-html',
+                        value: 'x-html',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-ref',
+                        value: 'x-ref',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-init',
+                        value: 'x-init',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-cloak',
+                        value: 'x-cloak',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-transition',
+                        value: 'x-transition',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-transition:enter',
+                        value: 'x-transition:enter',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-transition:leave',
+                        value: 'x-transition:leave',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-transition:enter-start',
+                        value: 'x-transition:enter-start',
+                        meta: 'AlpineJS',
+                        score: 100
+                    },
+                    {
+                        caption: 'x-transition:enter-end',
+                        value: 'x-transition:enter-end',
+                        meta: 'AlpineJS',
+                        score: 100
+                    }
+                ]; 
+
+
+        // var container = document.getElementById('editor-tweak-container');
+        // var content = container.innerHTML;
+        // // Get current view port height 80% of the screen
+        // window.tweaks = new WinBox({
+        //     title: 'Class Manager',
+        //      border: 4,
+        //     width: window.winbox_width,
+        //     height: 350,
+        //     minheight: 300,
+        //     minwidth: 100,
+        //     top: 45,
+        //     left: 0,
+        //     right: 0,
+        //     bottom: 45,
+        //     mount: container,
+        //     onfocus: function() {
+        //         this.setBackground('#00aa00');
+        //     },
+        //     onblur: function() {
+        //         this.setBackground('#777');
+        //     },
+        //      onrestore: () => {
+        //         // Remove event listener when restored
+        //         document.removeEventListener('click', handleWindowClick);
+        //     },
+        // });
+
+        function handleWindowClick(event) {
+            const target = event.target;
+            if (target.classList.contains('mb-minimized')) {
+                // Restore the WinBox if the minimized box is clicked
+               
+                window.tweaks.restore();
+            }
+        }
+
+        var lc_tweak_editor = ace.edit("lc-tweak-editor");
+        var Emmet = ace.require("ace/ext/emmet");
+        lc_tweak_editor.setOptions({
+             enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+            showPrintMargin: false,
+            highlightActiveLine: false,
+            mode: "ace/mode/twig",
+            wrap: true,
+            useSoftTabs: false,
+            tabSize: 4,
+            enableEmmet: false,
+            showGutter: false,
+            enableSnippets: false
+        });
+
+        // padding-block for editor 10px
+        lc_tweak_editor.renderer.setScrollMargin(18, 18)
+        // set margin x axis
+        lc_tweak_editor.renderer.setPadding(10)
+        // lc_tweak_editor.setFontSize(16);
+        lc_tweak_editor.setTheme('ace/theme/tomorrow_night_bright');
+
+        window.lc_tweak_editor = lc_tweak_editor;
+
+      async function siulAutocomplete(prefix, frameWindow) {
+            let response = await frameWindow.siul.module.autocomplete.query(prefix);
+            const completions = [];
+            response.map((item) => {
+                completions.push({
+                    caption: item.name,
+                    value: item.name,
+                    meta: 'TailwindCSS',
+                    score: 100
+                });
+            });
+            console.log(completions);
+            return completions;
+        }
+
+       lc_tweak_editor.completers.push({
+        getCompletions: async (editor, session, pos, prefix, callback) => {
+            const frame = document.getElementById('previewiframe');
+            const frameWindow = frame.contentWindow || frame.contentDocument;
+
+            const alpine_autocompletes = alpineCompletions
+
+            const acf_completions = [];
+
+            // Get ACF field names
+            try {
+                const response = await fetch('/wp-json/acf/v3/fields');
+                if (response.ok) {
+                    const fields = await response.json();
+                    fields.forEach(field => {
+                        acf_completions.push({
+                            value: field.name,
+                            score: 1,
+                            meta: 'ACF Field'
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching ACF fields:', error);
+            }
+
+            let lineTillCursor = session.getDocument().getLine(pos.row).substring(0, pos.column);
+
+            var completions = [];
+
+            if (frameWindow.siul) {
+                    try {
+                        completions = completions.concat(await siulAutocomplete(prefix, frameWindow));
+                        console.log('Yabe Siul Completions:', completions);
+                    } catch (error) {
+                        console.error('Error with siul autocomplete:', error);
+                    }
+                }
+
+            // Context-specific completions
+            if (/class=["|'][^"']*$/i.test(lineTillCursor)) {
+                // Show class completions when within class=""
+                completions = completions.concat(liveCanvasAutocomplete());
+
+                // Yabe Siul completions for classes context
+                
+
+            } else if (/style=["|'][^"']*var\([^\)]*$/i.test(lineTillCursor)) {
+                // Show CSS variable completions when "--" is typed within var()
+                completions = completions.concat(getCSSVariableCompletions());
+            } else if (/\<[a-zA-Z0-9-]+[\s]+[^>]*$/i.test(lineTillCursor)) {
+                // Show Alpine completions when adding attributes
+                completions = completions.concat(alpine_autocompletes);
+            }
+
+            // ACF completions always occur as a completion if it's innerText or attribute value =" or > here 
+            if (/=["|'][\s\S]*$/i.test(lineTillCursor) || />[^<]*$/i.test(lineTillCursor)) {
+                completions = completions.concat(acf_completions);
+            }
+
+            completions = completions.filter((completion) => {
+                return completion.value.startsWith(prefix);
+            });
+
+            callback(null, completions);
+        }
+});
+
+function liveCanvasAutocomplete() {
+    let classes = new Set();
+
+    const frame = document.getElementById('previewiframe');
+    if (!frame || !frame.contentWindow || !frame.contentWindow.document) {
+        console.error("Invalid or missing iframe or document object");
+        return [];
+    }
+
+    const frameWindow = frame.contentWindow;
+    if (!frameWindow.document.styleSheets) {
+        console.error("Missing stylesheets in the iframe");
+        return [];
+    }
+    // Loop through all stylesheets
+    for (let sheet of frameWindow.document.styleSheets) {
+        // Skip some stylesheets
+        if (['wp-block-library-css', 'lc-preview-iframe'].includes(sheet.ownerNode.id)) {
+            continue;
+        }
+
+        let sheetHref = sheet.href || '';
+        let sheetName = sheetHref.split('/').pop() || 'Inline Styles'; // Extract filename or label inline styles
+
+        try {
+            Array.from(sheet.cssRules).forEach(rule => {
+                // Process regular style rules
+                if (rule.type === CSSRule.STYLE_RULE) {
+                    processStyleRule(rule, classes, sheetName);
+                }
+
+                // Process rules within media queries
+                if (rule.type === CSSRule.MEDIA_RULE) {
+                    Array.from(rule.cssRules).forEach(innerRule => {
+                        if (innerRule.type === CSSRule.STYLE_RULE) {
+                            processStyleRule(innerRule, classes, sheetName);
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Error processing stylesheet:", e);
+        }
+    }
+
+    let theClassesArray = Array.from(classes);
+
+    // Sort the classes
+    theClassesArray.sort((a, b) => a.className.localeCompare(b.className));
+
+    let mappedArray = theClassesArray.map(({ className, sheetName }) => {
+        return {
+            value: className,
+            score: sheetName.startsWith('bundle.css') ? 2 : 1,
+            meta: (sheetName.startsWith('bundle.css') || sheetName.startsWith('bundle-')) ? 'picostrap' : sheetName // Check for 'bundle.css'
+        };
+    });
+
+    return mappedArray;
+}
+
+function processStyleRule(rule, classes, sheetName) {
+    rule.selectorText.split(/\s+/).forEach(selector => {
+        if (selector.startsWith('.')) {
+            classes.add({
+                className: selector.substring(1),
+                sheetName: sheetName
+            });
+        }
+    });
+}
+
+function getCSSVariableCompletions() {
+    const frame = document.getElementById('previewiframe');
+    const frameWindow = frame.contentWindow || frame.contentDocument;
+    const computedStyle = frameWindow.getComputedStyle(frameWindow.document.documentElement);
+    const cssVariables = Array.from(computedStyle).filter(prop => prop.startsWith('--'));
+
+    return cssVariables.map(variable => ({
+        value: variable,
+        score: 1,
+        meta: 'CSS Variable'
+    }));
+}
+
+        lc_tweak_editor.getSession().on('change', function() {
+            const iframe = document.getElementById('previewiframe');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+            const current_value = lc_tweak_editor.getValue();
+            console.log('Editor Change', '| Active Selectors:', window.active_multiselect, '| Current Value:', `/n ${current_value}`);
+
+            // Remove data-active-item from all previously selected elements
+            const prev_active_elements = iframeDoc.querySelectorAll('[data-active-item]');
+            prev_active_elements.forEach(prev_element => {
+                prev_element.removeAttribute('data-active-item');
+            });
+
+            // Remove from doc
+            const doc_active_elements = doc.querySelectorAll('[data-active-item]');
+            doc_active_elements.forEach(prev_element => {
+                prev_element.removeAttribute('data-active-item');
+            });
+
+            // Remove Hover from doc
+            const doc_hover_elements = doc.querySelectorAll('[data-hover-item]');
+            doc_hover_elements.forEach(prev_element => {
+                prev_element.removeAttribute('data-hover-item');
+            });
+
+            window.active_multiselect.forEach(selector => {
+                console.log('Processing Selector:', selector);
+                const element = doc.querySelector(selector);
+                const previewEl = iframeDoc.querySelector(selector);
+                if (element) {
+                    // Format the classes
+                    if (current_value.length > 0) {
+                        const classes = current_value.split('\n').map(cls => cls.trim()).filter(cls => cls !== '').join(' ');
+                        // Update the classes of the selected element
+                        element.className = classes;
+                    }
+
+                    // Set the data-active-item attribute for each selected element
+                    // element.setAttribute('data-active-item', selector);
+                    // element.removeAttribute('data-hover-item');
+
+                    // update the preview
+                    previewEl.setAttribute('data-active-item', selector);
+                    previewEl.removeAttribute('data-hover-item');
+
+                    // add class to the preview element
+                    previewEl.className = element.className;
+                }
+            });
+            
+            setTimeout(() => {
+                // updateStructureTree();
+            }, 10)
+            // Update the preview (assuming updatePreviewSectorial is defined elsewhere in your code)
+            // updatePreviewSectorial('main#lc-main');
+        });
+
+
+        function processElements(selectedElements, callback) {
+            const parentFrame = document.getElementById('previewiframe');
+            const parentDoc = parentFrame.contentDocument || parentFrame.contentWindow.document;
+
+            // Clear the active multiselect
+            window.active_multiselect = [];
+
+            // Clear the active selector
+            window.active_selector = '';
+
+            const resultElements = [];
+
+            // Remove all data-active-item
+            const prevActiveElements = parentDoc.querySelectorAll('[data-active-item]');
+            prevActiveElements.forEach(prev_element => {
+                prev_element.removeAttribute('data-active-item');
+            });
+
+            // Create an array of promises for each setTimeout operation
+            const promises = selectedElements.map((selector, index) => {
+                return new Promise((resolve) => {
+                setTimeout(() => {
+                    const element = parentDoc.querySelector(selector);
+                    if (element) {
+                    console.log('Element:', element, '| Selector:', selector);
+                    const result = callback(element);
+                    if (result) {
+                        resultElements.push({ selector: result.selector, classes: Array.from(result.element.classList) });
+                        console.log('Result Element:', result.element, '| Result Selector:', result.selector);
+                        result.element.setAttribute('data-active-item', result.selector);
+                        console.log('Result Selector:', result.selector);
+                    }
+                    }
+                    resolve();
+                }, index * 10);
+                });
+            });
+
+            // Wait for all promises to resolve before executing the code after the loop
+            Promise.all(promises).then(() => {
+                if (resultElements.length > 0) {
+                // Get the first result element and set it as the active selector
+                window.active_selector = resultElements[0].selector;
+
+                // Get the element by selector
+                const activeElement = parentDoc.querySelector(window.active_selector);
+
+                // Get the classes of the active element
+                const activeClasses = Array.from(activeElement.classList);
+
+                // Filter the resultElements based on matching classes with the active element
+                const filteredElements = resultElements.filter(result => {
+                    return activeClasses.every(cls => result.classes.includes(cls));
+                });
+
+                // Set the active multiselect to the filtered elements
+                window.active_multiselect = filteredElements.map(result => result.selector);
+
+                // Set manager session
+                setManagerSession(activeElement, activeClasses);
+
+                // Console.log active multiselect
+                console.log('Active Multiselect:', window.active_multiselect);
+                } else {
+                alert('No valid elements found for the selected operation.');
+                }
+            });
+            }
+
+            $('body').on('click', '.el-parent', function (e) {
+            console.log('Parent clicked');
+            const selected = [...window.active_multiselect];
+            console.log('Active Multiselect:', selected);
+
+            processElements(selected, (element) => {
+                const parentElement = element.parentElement;
+                if (parentElement && !parentElement.matches('main#lc-main')) {
+                const parentSelector = CSSelector(parentElement);
+                return { element: parentElement, selector: parentSelector };
+                }
+            });
+            });
+
+            $('body').on('click', '.el-child', function (e) {
+            console.log('Child clicked');
+            const selected = [...window.active_multiselect];
+            console.log('Active Multiselect:', selected);
+
+            processElements(selected, (element) => {
+                const firstChildElement = element.firstElementChild;
+                if (firstChildElement) {
+                const childSelector = CSSelector(firstChildElement);
+                return { element: firstChildElement, selector: childSelector };
+                }
+            });
+            });
+
+            $('body').on('click', '.el-next', function (e) {
+            console.log('Next clicked');
+            const selected = [...window.active_multiselect];
+            console.log('Active Multiselect:', selected);
+
+            processElements(selected, (element) => {
+                const nextElement = element.nextElementSibling;
+                if (nextElement) {
+                const nextSelector = CSSelector(nextElement);
+                return { element: nextElement, selector: nextSelector };
+                }
+            });
+            });
+
+            $('body').on('click', '.el-previous', function (e) {
+            console.log('Previous clicked');
+            const selected = [...window.active_multiselect];
+            console.log('Active Multiselect:', selected);
+
+            processElements(selected, (element) => {
+                const previousElement = element.previousElementSibling;
+                if (previousElement) {
+                const previousSelector = CSSelector(previousElement);
+                return { element: previousElement, selector: previousSelector };
+                }
+            });
+            });
+
+
+
+            $('body').on('click', '.el-siblings', function (e) {
+            console.log('Siblings clicked');
+            const selected = [...window.active_multiselect];
+            console.log('Active Multiselect:', selected);
+
+            const parentFrame = document.getElementById('previewiframe');
+            const parentDoc = parentFrame.contentDocument || parentFrame.contentWindow.document;
+
+            if (selected.length > 0) {
+                // Get the first selected element
+                const firstSelected = selected[0];
+
+                // Find the corresponding element in the iframe
+                const iframeElement = parentDoc.querySelector(firstSelected);
+
+                if (iframeElement) {
+                // Get the parent of the first selected element
+                const parentElement = iframeElement.parentNode;
+
+                // Get all children of the parent element
+                const children = Array.from(parentElement.children);
+                console.log('Parent Element:', parentElement);
+                console.log('Children:', children);
+
+                // Get the classes of the active selector
+                const activeClasses = Array.from(iframeElement.classList);
+
+                // Filter the children based on matching classes with the active selector
+                const matchingChildren = children.filter(child => {
+                    const childClasses = Array.from(child.classList);
+                    return activeClasses.every(cls => childClasses.includes(cls));
+                });
+
+                window.active_multiselect = [];
+
+                // Log the matching children and their attributes
+                matchingChildren.forEach((child, index) => {
+                    // Generate the selector using CSSelector
+                    const selector = CSSelector(child);
+
+                    // Set the data-active-item attribute for each matching child element
+                    child.setAttribute('data-active-item', selector);
+                    window.active_multiselect.push(selector);
+
+                    // Get the element's class list
+                    const classes = Array.from(child.classList);
+                    console.log('Element:', child, '| Selector:', selector);
+                });
+
+                // Call setManagerSession only for the matching siblings
+                matchingChildren.forEach(child => {
+                    const classes = Array.from(child.classList);
+                    setManagerSession(child, classes);
+                });
+
+                // Alert the user about the count of selected and non-matching elements
+                const selectedCount = matchingChildren.length;
+                const nonMatchingCount = children.length - selectedCount;
+                alert(`${selectedCount} siblings selected. ${nonMatchingCount} non-matching siblings found.`);
+                } else {
+                console.log('Element not found in iframe');
+                }
+            } else {
+                console.log('No elements selected');
+            }
+            });
+
+
+
+            function generateClassSelector(element) {
+            // Get the classes of the element
+            const classes = Array.from(element.classList);
+
+            // Generate the class selector
+            const classSelector = classes.map(cls => `.${cls}`).join('');
+
+            return classSelector;
+            }
+    
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   $("body").on("click", ".el-move-up", function (e) {
+        e.preventDefault();
+
+        // Define previewFrame
+        var previewFrame = document.getElementById('previewiframe');
+
+        // Get the contentWindow of the previewFrame
+        var previewContent = previewFrame.contentWindow || previewFrame.contentDocument;
+
+        // Check if previewContent is accessible
+        if (previewContent.document) {
+            previewContent = previewContent.document;
+        }
+
+        // Jquery to use window multi selector array
+        var selected = window.active_multiselect;
+
+        // iframe
+        const previewIframe = document.getElementById('previewiframe');
+        const previewWindow = previewIframe.contentDocument || previewIframe.contentWindow.document;
+
+        // For each selected element
+        selected.forEach(function (selector, index) {
+
+
+                setTimeout(() => {
+
+                    moveElementUp(selector);
+                    // updatePreviewSectorial(CSSelector(the_parentNode));
+
+                    // // after update get the new selector and update the window.active_multiselect
+                    // window.active_multiselect[index] = CSSelector(doc.querySelector(selector));
+
+                    // // apply data-active-item to the new element
+                    // doc.querySelector(selector).setAttribute('data-active-item', selector);
+
+                }, 10 * index);
+            });
+                // clear the active multiselect
+                window.active_multiselect = [];
+                // clear the active selector
+                window.active_selector = '';
+                // set lc_tweak_editor value to empty
+                lc_tweak_editor.setValue('');
+
+                // remove all data-active-item
+                const prev_active_elements = doc.querySelectorAll('[data-active-item]');
+                prev_active_elements.forEach(prev_element => {
+                    prev_element.removeAttribute('data-active-item');
+                });
+        });
+    
+     $("body").on("click", ".el-move-down", function (e) {
+                e.preventDefault();
+
+                // Define previewFrame
+                var previewFrame = document.getElementById('previewiframe');
+
+                // Get the contentWindow of the previewFrame
+                var previewContent = previewFrame.contentWindow || previewFrame.contentDocument;
+
+                // Check if previewContent is accessible
+                if (previewContent.document) {
+                    previewContent = previewContent.document;
+                }
+
+                // Jquery to use window multi selector array
+                var selected = window.active_multiselect;
+
+                // iframe
+                const previewIframe = document.getElementById('previewiframe');
+                const previewWindow = previewIframe.contentDocument || previewIframe.contentWindow.document;
+
+                // For each selected element
+                selected.forEach(function (selector, index) {
+                    console.log('Selected:', selector, '| Index:', index);
+                    const element = previewWindow.querySelector(selector);
+                    // get element tag name
+                    const elementTag = element.tagName.toLowerCase();
+                    const parentElement = element.parentElement;
+
+                    setTimeout(() => {
+                    
+                    moveElementDown(selector);
+
+                    }, 10 * index);
+                });
+
+                // clear the active multiselect
+                window.active_multiselect = [];
+                // clear the active selector
+                window.active_selector = '';
+                // set lc_tweak_editor value to empty
+                lc_tweak_editor.setValue('');
+
+                // remove all data-active-item
+                const prev_active_elements = doc.querySelectorAll('[data-active-item]');
+                prev_active_elements.forEach(prev_element => {
+                    prev_element.removeAttribute('data-active-item');
+                });
+            });
+
+           $('body').on('click', '.el-family', function (e) {
+    console.log('Family clicked');
+    const selected = [...window.active_multiselect];
+    console.log('Active Multiselect:', selected);
+
+    const parentFrame = document.getElementById('previewiframe');
+    const parentDoc = parentFrame.contentDocument || parentFrame.contentWindow.document;
+
+    if (selected.length > 0) {
+        // Get the first selected element
+        const firstSelected = selected[0];
+
+        // Find the corresponding element in the iframe
+        const iframeElement = parentDoc.querySelector(firstSelected);
+
+        if (iframeElement) {
+            // Get the classes of the first selected element
+            const firstElementClasses = Array.from(iframeElement.classList).sort().join(' ');
+
+            // Generate the full selector for the element
+            const fullSelector = CSSelector(iframeElement);
+
+            // Simplify the selector
+            const simplifiedSelector = simplifySelector(fullSelector);
+
+            console.log('Full Selector:', fullSelector);
+            console.log('Simplified Selector:', simplifiedSelector);
+
+            // Use the simplified selector as needed
+            // For example, select elements using the simplified selector
+            const familyElements = parentDoc.querySelectorAll(simplifiedSelector);
+            console.log('Family Elements:', familyElements);
+
+            window.active_multiselect = [];
+            familyElements.forEach(element => {
+                // Check if the element has the same classes as the first selected element
+                const elementClasses = Array.from(element.classList).sort().join(' ');
+                if (elementClasses === firstElementClasses) {
+                    const selector = CSSelector(element);
+                    window.active_multiselect.push(selector);
+                    element.setAttribute('data-active-item', selector);
+                    console.log('Element:', element, '| Selector:', selector);
+                }
+            });
+        } else {
+            console.log('Element not found in iframe');
+        }
+    } else {
+        console.log('No elements selected');
+    }
+});
+
+function simplifySelector(selector) {
+    const parts = selector.split(' > ');
+    const simplifiedParts = parts.map(part => part.replace(/:nth-child\(\d+\)/g, ''));
+    return simplifiedParts.join(' > ');
+}
+
+function updateSelectedTag() {
+  const selectedTag = document.getElementById('selected-tag');
+  if (window.active_selector) {
+    const parentFrame = document.getElementById('previewiframe');
+    const parentDoc = parentFrame.contentDocument || parentFrame.contentWindow.document;
+    const selectedElement = parentDoc.querySelector(window.active_selector);
+    if (selectedElement) {
+      selectedTag.value = selectedElement.tagName.toLowerCase();
+    } else {
+      selectedTag.value = '';
+    }
+  } else {
+    selectedTag.value = '';
+  }
+}
+
+
+
+
+    // Call the updateSelectedTag function whenever window.active_selector changes
+    Object.defineProperty(window, 'active_selector', {
+    set: function(value) {
+        this._active_selector = value;
+        updateSelectedTag();
+    },
+    get: function() {
+        return this._active_selector;
+    }
+    });
+
+});
+
+function onSaveBlock() {
+        const manager = ace.require('ace/snippets').snippetManager;
+
+        var html = getPageHTML(window.active_selector);
+        swal({
+            text: 'Enter a descriptive name...',
+            content: "input",
+            button: {
+                text: "Save",
+                closeModal: true,
+            },
+        }).then(name => {
+            if (!name) throw null;
+            libraryStoreBlock('lc_block', name, html);
+            swal.stopLoading();
+            swal.close();
+            registerThemeSnippets(manager);
+        });
+     }
+   function libraryStoreBlock(post_type, post_title, post_content) {
+        $.post(
+            lc_editor_saving_url, {
+            'action': 'lc_save_element',
+            'post_type': post_type,
+            'post_title': post_title,
+            'post_content': '\n' + html_beautify(post_content, {
+                unformatted: ['script', 'style'],
+                "indent_size": "1",
+                "indent_char": "\t",
+            }) + '\n',
+            'lc_main_save_nonce_field': $("#lc_main_save_nonce_field").val(),
+        },
+            function (response) {
+                //console.log('The server responded: ', response);
+                if (response.includes("Save")) {
+                    //success  
+                    swal({ title: "Added to library", icon: "success" });
+                } else {
+                    //(rare) Error!
+                    swal({ title: "Saving error (b)", icon: "warning", text: response });
+                }
+            }
+        )
+            //.done(function(msg){  })
+            .fail(function (xhr, status, error) {
+                // (typical, eg unlogged) Error!
+                swal({ title: "Saving error", icon: "warning", text: error });
+            });
+
+    }
+
+    function changeElTag() {
+        const selectedTag = document.getElementById('selected-tag');
+        const selectedValue = selectedTag.value;
+        console.log('Selected tag:', selectedValue);
+    }
+    
+function onToggleBlock() {
+    // click the active_selector
+    const activeSelector = window.active_selector;
+    const previewFrame = document.getElementById('previewiframe');
+    const previewContent = previewFrame.contentWindow || previewFrame.contentDocument;
+
+    if (previewContent) {
+        const element = previewContent.document.querySelector(activeSelector);
+        if (element) {
+            console.log(element, activeSelector, 'TOGGLE OPTION');
+            // if the element type is image
+            if (element.tagName.toLowerCase() === 'img') {
+                // set lc-helper="image" to the element
+                element.setAttribute('lc-helper', 'image');
+
+                setTimeout(() => {
+                    element.click();
+                }, 10);
+            }
+            
+        }
+    }
+}
+</script>

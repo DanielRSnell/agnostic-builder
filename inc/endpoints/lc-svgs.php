@@ -9,7 +9,7 @@ add_action('rest_api_init', function () {
 
 function get_livecanvas_svgs($request)
 {
-    $child_theme_dir = get_stylesheet_directory();
+    $child_theme_dir = get_template_directory();
     $svgs_dir = $child_theme_dir . '/template-livecanvas-svgs';
     $svgs = array();
 

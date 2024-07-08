@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html x-cloak {{ site.language_attributes }} x-data="AgnosticEditorPreview()" x-init="init()">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    {% do action('get_header') %}
+    {{ function('wp_head') }}
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  </head>
+
+  <body id="agnostic-builder" class="{{ body_class }}" x-ref="body">
+    <main id="agnostic-content" x-ref="content">{{ template|raw }}</main>
+
+    <div id="agnostic-hover-overlay" class="agnostic-overlay hover" x-ref="hoverOverlay" style="display: none;">
+      <div class="agnostic-tag" x-ref="hoverTag"></div>
+    </div>
+
+    <template x-for="(element, index) in activeElements" :key="index">
+      <div class="agnostic-overlay active" :style="getOverlayStyle(element)">
+        <div class="agnostic-tag active" x-text="getTagName(element.element)"></div>
+      </div>
+    </template>
+
+    {{ function('wp_footer') }}
+    {% do action('get_footer') %}
+
+    <style>
+      html {
+        margin-top: 0rem !important;
+      }
+      #wpadminbar {
+        display: none !important;
+      }
+      .agnostic-overlay {
+        position: absolute;
+        border: 2px dashed;
+        pointer-events: none;
+        z-index: 1000;
+        border-radius: 4px;
+      }
+      .agnostic-overlay.hover {
+        border-color: rgba(232, 62, 139, 0.8);
+      }
+      .agnostic-overlay.active {
+        border-color: rgb(39, 198, 218);
+        border-style: solid;
+      }
+      .agnostic-tag {
+        position: absolute;
+        top: -20px;
+        left: 0;
+        background-color: rgba(232, 62, 139);
+        color: #fff;
+        padding: 2px 0.8rem;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 4px;
+        font-family: sans-serif;
+      }
+      .agnostic-tag.active {
+        background-color: rgb(39, 198, 218);
+      }
+      #agnostic-builder * {
+        cursor: pointer !important;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+    </style>
+
+    <script id="agnostic-preview">
+      function AgnosticEditorPreview() {
+        return {
+          hoverElement: null,
+          activeElements: [],
+          hoverOverlay: null,
+          hoverTag: null,
+          init() {
+            this.hoverOverlay = this.$refs.hoverOverlay
+            this.hoverTag = this.$refs.hoverTag
+      
+            const stateEl = document.querySelector('[x-data="AgnosticEditorPreview()"]')
+            window.AgnosticEditor = stateEl._x_dataStack[0]
+      
+            exposeAgnosticEditorToParent()
+          },
+          getTagName(element) {
+            return element && element.tagName ? element.tagName.toUpperCase() : ''
+          },
+          getElementRect(element) {
+            if (element && element.getBoundingClientRect) {
+              const rect = element.getBoundingClientRect()
+              const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+              const scrollY = window.pageYOffset || document.documentElement.scrollTop
+              return {
+                left: rect.left + scrollX,
+                top: rect.top + scrollY,
+                width: rect.width,
+                height: rect.height
+              }
+            }
+            return { left: 0, top: 0, width: 0, height: 0 }
+          },
+          getOverlayStyle(element) {
+            const rect = this.getElementRect(element.element)
+            return {
+              left: `${rect.left - 4}px`,
+              top: `${rect.top - 4}px`,
+              width: `${rect.width + 8}px`,
+              height: `${rect.height + 8}px`
+            }
+          },
+          onMouseOver(event) {
+            if (event.target !== this.$refs.content) {
+              this.hoverElement = event.target
+              this.updateHoverOverlay()
+            }
+          },
+          onMouseOut(event) {
+            if (!this.$refs.content.contains(event.relatedTarget)) {
+              this.hoverElement = null
+              this.hideHoverOverlay()
+            }
+          },
+          updateHoverOverlay() {
+            if (this.hoverElement) {
+              const rect = this.getElementRect(this.hoverElement)
+              this.hoverTag.textContent = this.getTagName(this.hoverElement)
+              anime({
+                targets: this.hoverOverlay,
+                left: rect.left - 4,
+                top: rect.top - 4,
+                width: rect.width + 8,
+                height: rect.height + 8,
+                opacity: 1,
+                easing: 'easeOutQuad',
+                duration: 200,
+                begin: () => {
+                  this.hoverOverlay.style.display = 'block'
+                }
+              })
+      
+              if (window.parent && window.parent !== window) {
+                window.parent.postMessage(
+                  {
+                    type: 'hoveredElementChanged',
+                    selector: this.generateSelector(event.target)
+                  },
+                  '*'
+                )
+              }
+            }
+          },
+          hideHoverOverlay() {
+            anime({
+              targets: this.hoverOverlay,
+              opacity: 0,
+              easing: 'easeOutQuad',
+              duration: 200,
+              complete: () => {
+                this.hoverOverlay.style.display = 'none'
+              }
+            })
+          },
+          onClick(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            const clickedElement = event.target
+            const index = this.activeElements.findIndex((el) => el.element === clickedElement)
+            const isMultiSelect = event.metaKey || event.ctrlKey // Check for CMD/Ctrl key
+      
+            if (index === -1) {
+              if (!isMultiSelect) {
+                // Remove all existing active elements if not multi-selecting
+                this.activeElements.forEach((el) => this.removeActiveOverlay(el))
+                this.activeElements = []
+              }
+              // Add the new element
+              this.activeElements.push({ element: clickedElement })
+              this.animateActiveOverlay({ element: clickedElement })
+            } else {
+              // Remove the clicked element if it's already active
+              this.activeElements.splice(index, 1)
+              this.removeActiveOverlay({ element: clickedElement })
+            }
+      
+            this.sendActiveElementsToParent()
+          },
+          parentLog(message) {
+            if (window.parent && window.parent !== window) {
+              window.parent.console.log(message)
+            }
+          },
+      
+          onHandleMessageClick(element, condition) {
+            const clickedElement = element
+            this.parentLog(clickedElement)
+            const index = this.activeElements.findIndex((el) => el === clickedElement)
+      
+            // remove all existing active elements if not multi-selecting
+            this.activeElements.forEach((el) => this.removeActiveOverlay(el))
+      
+            if (index === -1) {
+              this.activeElements.forEach((el) => this.removeActiveOverlay(el))
+              this.activeElements = []
+            }
+            // Typically conditions refer to clicks other than in live preview
+            if (condition) {
+              // check if the last item in the activeElements array is the same as the clicked element
+              const check = this.activeElements[this.activeElements.length - 1]
+              // if it is scroll to it
+              if (check === clickedElement) {
+                this.scrollElementIntoViewWithinIframe(element)
+              }
+            }
+      
+            this.activeElements.push({ element: clickedElement })
+            this.animateActiveOverlay({ element: clickedElement })
+      
+            // Scroll to the clicked element within the iframe
+            // this.scrollElementIntoViewWithinIframe(element)
+      
+            // WARNING: Do not use: this.sendActiveElementsToParent(), will cause infinite loop
+          },
+          onHandleMessageHover(element, isHovering) {
+            console.log('Hovering element:', element, isHovering)
+            // this.parentLog('Hovering element:', element, isHovering)
+            if (isHovering) {
+              this.hoverElement = element
+              this.updateHoverOverlay()
+      
+              if (this.activeElements.length === 0) {
+                this.scrollElementIntoViewWithinIframe(element)
+              }
+            } else {
+              this.hoverElement = null
+              this.hideHoverOverlay()
+            }
+          },
+      
+          scrollElementIntoViewWithinIframe(element) {
+            const iframe = window.frameElement
+            if (!iframe) return // Not in an iframe
+      
+            const iframeRect = iframe.getBoundingClientRect()
+            const elementRect = element.getBoundingClientRect()
+      
+            // Calculate the scroll position
+            const scrollContainer = document.scrollingElement || document.documentElement
+            const currentScrollTop = scrollContainer.scrollTop
+            const targetScrollTop = currentScrollTop + elementRect.top - iframeRect.height / 2 + elementRect.height / 2
+      
+            // Perform smooth scrolling
+            this.smoothScrollTo(scrollContainer, currentScrollTop, targetScrollTop)
+          },
+      
+          smoothScrollTo(element, start, end) {
+            const duration = 500 // Duration of the scroll animation in milliseconds
+            const startTime = performance.now()
+      
+            function animateScroll(currentTime) {
+              const elapsedTime = currentTime - startTime
+              const progress = Math.min(elapsedTime / duration, 1)
+              const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2 // Easing function
+      
+              element.scrollTop = start + (end - start) * easeProgress
+      
+              if (progress < 1) {
+                requestAnimationFrame(animateScroll)
+              }
+            }
+      
+            requestAnimationFrame(animateScroll)
+          },
+          refreshOverlay(el) {
+            // if it already exists, then it's like a screen size change and overlay needs to be updated
+            const existingOverlay = document.querySelector(`.agnostic-overlay.active[data-element="${overlayIdentifier}"]`)
+            if (existingOverlay) {
+              // This child window has just been resized and we need to update the position of the overlay
+              const rect = this.getElementRect(el)
+              // use anime.js to animate the overlay to the new position
+              anime({
+                targets: existingOverlay,
+                left: rect.left - 4,
+                top: rect.top - 4,
+                width: rect.width + 8,
+                height: rect.height + 8,
+                easing: 'easeOutQuad',
+                duration: 200
+              })
+            }
+          },
+          onHandleRefreshClick() {
+            // Create a copy of the active elements
+            const currentElements = []
+            this.activeElements.forEach((el) => {
+              currentElements.push(el)
+            })
+            this.destroyOverlays()
+            setTimeout(() => {
+              // Destroy all active overlays by triggering a click on each element
+      
+              window.parent.console.log('Create Overlays for: ', currentElements.length, ' elements')
+              // Use handle message click to create the overlays
+              currentElements.forEach((el) => {
+                this.onHandleMessageClick(el.element, false)
+              })
+            }, 501)
+          },
+          destroyOverlays() {
+            // Fade out all active overlays
+            const overlays = document.querySelectorAll('.agnostic-overlay.active')
+            overlays.forEach((overlay) => {
+              anime({
+                targets: overlay,
+                opacity: 0,
+                easing: 'easeOutQuad',
+                duration: 15,
+                complete: () => {
+                  // click all the active elements
+                  this.activeElements.forEach((el) => el.element.click())
+                }
+              })
+            })
+          },
+          animateActiveOverlay(activeElement) {
+            const rect = this.getElementRect(activeElement.element)
+            const overlay = document.createElement('div')
+            overlay.className = 'agnostic-overlay active'
+      
+            // Create a unique identifier for the overlay
+            const overlayIdentifier = activeElement.element.id || activeElement.element.tagName + '-' + Array.from(activeElement.element.classList).join('-')
+      
+            overlay.setAttribute('data-element', overlayIdentifier)
+      
+            overlay.style.left = `${rect.left - 4}px`
+            overlay.style.top = `${rect.top - 4}px`
+            overlay.style.width = `${rect.width + 8}px`
+            overlay.style.height = `${rect.height + 8}px`
+            overlay.style.opacity = '0'
+      
+            const tag = document.createElement('div')
+            tag.className = 'agnostic-tag active'
+            tag.textContent = this.getTagName(activeElement.element)
+            overlay.appendChild(tag)
+      
+            document.body.appendChild(overlay)
+      
+            anime({
+              targets: overlay,
+              opacity: 1,
+              easing: 'easeOutQuad',
+              duration: 200
+            })
+          },
+          removeActiveOverlay(activeElement) {
+            // Create a unique identifier for the overlay
+            const overlayIdentifier = activeElement.element.id || activeElement.element.tagName + '-' + Array.from(activeElement.element.classList).join('-')
+      
+            const overlay = document.querySelector(`.agnostic-overlay.active[data-element="${overlayIdentifier}"]`)
+      
+            window.parent.console.log('Removing active overlay:', overlay)
+            if (overlay) {
+              anime({
+                targets: overlay,
+                opacity: 0,
+                easing: 'easeOutQuad',
+                duration: 200,
+                complete: () => {
+                  window.parent.console.log('Removing active overlay complete:', overlay)
+                  overlay.remove()
+                }
+              })
+            }
+          },
+          // Generator selector for each element based on its position in the DOM
+          generateSelector(el) {
+            var names = []
+            while (el.parentNode) {
+              if (el.nodeName == 'MAIN' && el.id == 'agnostic-content') {
+                names.unshift(el.nodeName + '#' + el.id)
+                break
+              } else {
+                if (el === el.ownerDocument.documentElement || el === el.ownerDocument.body) {
+                  names.unshift(el.tagName)
+                } else {
+                  for (var c = 1, e = el; e.previousElementSibling; e = e.previousElementSibling, c++) {}
+                  names.unshift(el.tagName + ':nth-child(' + c + ')')
+                }
+                el = el.parentNode
+              }
+            }
+            return names.join(' > ')
+          },
+          sendActiveElementsToParent() {
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage(
+                {
+                  type: 'activeElementsChanged',
+                  activeElements: this.activeElements.map((el) => {
+                    // return array of selectors
+                    return this.generateSelector(el.element)
+                  })
+                },
+                '*'
+              )
+            }
+          }
+        }
+      }
+    </script>
+
+    <script>
+      function exposeAgnosticEditorToParent() {
+        if (window.parent && window.parent !== window) {
+          window.parent.AgnosticEditor = window.AgnosticEditor
+        }
+      }
+      
+      document.addEventListener('DOMContentLoaded', function () {
+        const content = document.querySelector('[x-ref="content"]')
+      
+        if (content && window.AgnosticEditor) {
+          content.addEventListener(
+            'mouseover',
+            (e) => {
+              window.AgnosticEditor.onMouseOver(e)
+            },
+            true
+          )
+      
+          content.addEventListener(
+            'mouseout',
+            (e) => {
+              window.AgnosticEditor.onMouseOut(e)
+            },
+            true
+          )
+      
+          content.addEventListener(
+            'click',
+            (e) => {
+              window.AgnosticEditor.onClick(e)
+            },
+            true
+          )
+        } else {
+          console.error('Content element or AgnosticEditor not found')
+        }
+      })
+    </script>
+
+    <script id="MESSAGES">
+      window.addEventListener('message', function (event) {
+        // Make sure the message is from the parent window
+        if (event.source !== window.parent) {
+          return
+        }
+      
+        // Check if the message is of type 'unselectable_el'
+        if (event.data && event.data.type === 'unselectable_el') {
+          console.log('Received unselectable element message:', event.data.selector)
+      
+          // Try to find the element using the selector
+          const element = document.querySelector(event.data.selector)
+      
+          if (element) {
+            // If the element is found, remove the active overlay
+            if (window.AgnosticEditor && typeof window.AgnosticEditor.removeActiveOverlay === 'function') {
+              window.AgnosticEditor.removeActiveOverlay(element)
+              console.log('Removed active overlay for:', event.data.selector)
+            } else {
+              console.warn('AgnosticEditor.removeActiveOverlay is not available')
+            }
+          } else {
+            console.warn('Element not found in iframe:', event.data.selector)
+          }
+        }
+      
+        if (event.data && event.data.type === 'clicked_el') {
+          const element = document.querySelector(event.data.selector)
+      
+          if (element) {
+            window.AgnosticEditor.onHandleMessageClick(element, false)
+          }
+        }
+      
+        if (event.data && event.data.type === 'tree_clicked_el') {
+          const element = document.querySelector(event.data.selector)
+      
+          if (element) {
+            window.parent.console.log('Parent Tree clicked element:', element)
+            window.AgnosticEditor.onHandleMessageClick(element, true)
+          }
+        }
+      
+        if (event.data && event.data.type === 'hover_el') {
+          const element = document.querySelector(event.data.selector)
+      
+          if (element) {
+            window.AgnosticEditor.onHandleMessageHover(element, true)
+          }
+        }
+      
+        if (event.data && event.data.type === 'unhover_el') {
+          window.AgnosticEditor.onHandleMessageHover('', false)
+        }
+      })
+      
+      // Function to set up the MutationObserver
+      function setupMetaWidthObserver() {
+        // Select the meta tag with the name "viewport"
+        const metaViewport = document.querySelector('meta[name="viewport"]')
+      
+        if (!metaViewport) {
+          console.error('Meta viewport tag not found')
+          return
+        }
+      
+        // Create a MutationObserver instance
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'content') {
+              // Check if the width in the content attribute has changed
+              if (mutation.target.content.includes('width')) {
+                console.log('Meta viewport width changed')
+                // Call the refresh function
+                if (window.AgnosticEditor && typeof window.AgnosticEditor.onHandleRefreshClick === 'function') {
+                  window.AgnosticEditor.onHandleRefreshClick()
+                } else {
+                  console.error('window.AgnosticEditor.onHandleRefreshClick is not available')
+                }
+              }
+            }
+          })
+        })
+      
+        // Start observing the meta tag for attribute changes
+        observer.observe(metaViewport, { attributes: true })
+      
+        console.log('Meta width observer set up')
+      }
+      
+      // Call the setup function when the DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', setupMetaWidthObserver)
+    </script>
+  </body>
+</html>

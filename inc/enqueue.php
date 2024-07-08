@@ -1,10 +1,18 @@
 <?php
 
+/**
+ * Enqueue scripts with defer attribute
+ */
+
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly.
+}
+
 function enqueue_swup_js_files()
 {
     // Define the path to the JS directory
-    $js_dir = get_stylesheet_directory() . '/js/swup/';
-    $js_url = get_stylesheet_directory_uri() . '/js/swup/';
+    $js_dir = get_template_directory() . '/js/swup/';
+    $js_url = get_template_directory_uri() . '/js/swup/';
 
     // Get all .js files in the directory
     $files = glob($js_dir . '*.js');
@@ -12,6 +20,7 @@ function enqueue_swup_js_files()
     // Enqueue core.js first if it exists
     if (in_array($js_dir . 'core.js', $files)) {
         wp_enqueue_script('swup', $js_url . 'core.js', array(), null, true);
+        wp_script_add_data('swup', 'defer', true);
         // Remove core.js from the files array
         $files = array_diff($files, array($js_dir . 'swup.js'));
     }
@@ -20,13 +29,16 @@ function enqueue_swup_js_files()
     foreach ($files as $file) {
         $filename = basename($file);
         if ($filename !== 'init.js') {
-            wp_enqueue_script($filename, $js_url . $filename, array(), null, true);
+            $handle = 'swup-' . str_replace('.js', '', $filename);
+            wp_enqueue_script($handle, $js_url . $filename, array(), null, true);
+            wp_script_add_data($handle, 'defer', true);
         }
     }
 
     // Enqueue init.js last if it exists
     if (in_array($js_dir . 'init.js', $files)) {
-        wp_enqueue_script('init-js', $js_url . 'init.js', array(), null, true);
+        wp_enqueue_script('swup-init', $js_url . 'init.js', array(), null, true);
+        wp_script_add_data('swup-init', 'defer', true);
     }
 }
 add_action('wp_enqueue_scripts', 'enqueue_swup_js_files');
@@ -34,8 +46,8 @@ add_action('wp_enqueue_scripts', 'enqueue_swup_js_files');
 function enqueue_alpine_js_files()
 {
     // Define the path to the JS directory
-    $js_dir = get_stylesheet_directory() . '/js/alpine/';
-    $js_url = get_stylesheet_directory_uri() . '/js/alpine/';
+    $js_dir = get_template_directory() . '/js/alpine/';
+    $js_url = get_template_directory_uri() . '/js/alpine/';
 
     // Get all .js files in the directory
     $files = glob($js_dir . '*.js');
@@ -50,29 +62,43 @@ function enqueue_alpine_js_files()
         }
 
         // Enqueue the file
-        wp_enqueue_script($filename, $js_url . $filename, array(), null, true);
+        $handle = 'alpine-' . str_replace('.js', '', $filename);
+        wp_enqueue_script($handle, $js_url . $filename, array(), null, true);
+        wp_script_add_data($handle, 'defer', true);
     }
 
     // Enqueue core.js last
     if (file_exists($js_dir . 'core.js')) {
-        wp_enqueue_script('core-js', $js_url . 'core.js', array(), null, true);
+        wp_enqueue_script('alpine-core', $js_url . 'core.js', array(), null, true);
+        wp_script_add_data('alpine-core', 'defer', true);
     }
 }
 add_action('wp_enqueue_scripts', 'enqueue_alpine_js_files');
 
-function editor_tweaks()
+/************ LIVECANVAS ENQUEUES  ***********************/
+
+function editor_head_tweaks()
+{
+    Timber::render('builder_head_tweaks.html');
+}
+
+add_action('lc_editor_header', 'editor_head_tweaks', 9999);
+
+function editor_footer_tweaks()
 {
     $context = Timber::context();
 
     // Add any additional data to the context if needed
     // $context['variable_name'] = $variable_value;
-    echo '<script id="twig-editor" src="' . get_stylesheet_directory_uri() . '/views/scripts/twig.js"></script>';
-    echo '<script id="observers-editor" src="' . get_stylesheet_directory_uri() . '/views/scripts/observers.js"></script>';
-    echo '<script id="modifications-editor" src="' . get_stylesheet_directory_uri() . '/views/scripts/modifications.js"></script>';
+    echo '<script id="twig-editor" src="' . get_template_directory_uri() . '/views/scripts/twig.js"></script>';
+    echo '<script id="observers-editor" src="' . get_template_directory_uri() . '/views/scripts/observers.js"></script>';
+    echo '<script id="modifications-editor" src="' . get_template_directory_uri() . '/views/scripts/modifications.js"></script>';
 
     Timber::render('editor_tweaks.html', $context);
 }
-add_action('lc_editor_before_body_closing', 'editor_tweaks', 9999);
+add_action('lc_editor_before_body_closing', 'editor_footer_tweaks', 9999);
+
+/************ LIVECANVAS SIUL INTEGRATION ***********************/
 
 class LiveCanvasSiulIntegration
 {

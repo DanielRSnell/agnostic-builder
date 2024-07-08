@@ -5,6 +5,7 @@ window.context = {};
 window.context_completions = [];
 window.selected_context = [];
 window.active_selector = null;
+window.active_el_tag = null;
 
 window.winbox_width = 375;
 
@@ -86,51 +87,99 @@ function organizeSiulaClasses(classes) {
 }
 
 
-function manageTreeSession(selector, classes) {
-  // expand tree view 
-  document.getElementById('tree-expand-all').click()
+// function reManageTreeSession() {
+//   const selector = window.active_selector;
+//   const classes = window.active_selector_classes;
 
-  // remove all data-active-item attributes that aren't selector or in active_multiselect
-  // Get all data-active-item, then check if they are in active_multiselect
-  const activeItems = document.querySelectorAll('[data-active-item]');
-  activeItems.forEach(item => {
-    const itemSelector = item.getAttribute('data-active-item');
-    if (itemSelector !== selector && !window.active_multiselect.includes(itemSelector)) {
-      item.removeAttribute('data-active-item');
-    }
-  });
+//     document.getElementById('tree-expand-all').click()
 
-  // for each item in active_multiselect, add data-active-item attribute to the clicked item
-  window.active_multiselect.forEach(item => {
-    console.log('Tree Active Multiselect:', item);
-    const treeViewItem = document.querySelector(`.tree-view-item[data-selector="${item}"] .tree-view-item-content-wrapper`);
-    console.log('Tree View Item:', treeViewItem)
-    if (treeViewItem) {
-      treeViewItem.setAttribute('data-active-item', item);
-    }
-  });
+//   // remove all data-active-item attributes that aren't selector or in active_multiselect
+//   // Get all data-active-item, then check if they are in active_multiselect
+//   const activeItems = document.querySelectorAll('[data-active-item]');
+//   activeItems.forEach(item => {
+//     const itemSelector = item.getAttribute('data-active-item');
+//     if (itemSelector !== selector && !window.active_multiselect.includes(itemSelector)) {
+//       item.removeAttribute('data-active-item');
+//     }
+//   });
 
-  // now scroll #tree-body to the data-active-item that is selector
-// now scroll #tree-body to the data-active-item that is selector
-const treeBody = document.getElementById('tree-body');
-const activeItem = document.querySelector(`.tree-view-item[data-selector="${selector}"] .tree-view-item-content-wrapper`);
+//   // for each item in active_multiselect, add data-active-item attribute to the clicked item
+//   window.active_multiselect.forEach(item => {
+//     console.log('Tree Active Multiselect:', item);
+//     const treeViewItem = document.querySelector(`.tree-view-item[data-selector="${item}"] .tree-view-item-content-wrapper`);
+//     console.log('Tree View Item:', treeViewItem)
+//     if (treeViewItem) {
+//       treeViewItem.setAttribute('data-active-item', item);
+//     }
+//   });
 
-// Scroll to the active item smoothly and position it in the middle
-if (activeItem) {
-  const activeItemRect = activeItem.getBoundingClientRect();
-  const treeBodyRect = treeBody.getBoundingClientRect();
-  const activeItemCenter = activeItemRect.top + activeItemRect.height / 2;
-  const treeBodyCenter = treeBodyRect.top + treeBodyRect.height / 2;
-  const scrollPosition = activeItemCenter - treeBodyCenter + treeBody.scrollTop;
+//   // now scroll #tree-body to the data-active-item that is selector
+// // now scroll #tree-body to the data-active-item that is selector
+// const treeBody = document.getElementById('tree-body');
+// const activeItem = document.querySelector(`.tree-view-item[data-selector="${selector}"] .tree-view-item-content-wrapper`);
 
-  treeBody.scrollTo({
-    top: scrollPosition,
-    behavior: 'smooth'
-  });
-}
+// // Scroll to the active item smoothly and position it in the middle
+// if (activeItem) {
+//   const activeItemRect = activeItem.getBoundingClientRect();
+//   const treeBodyRect = treeBody.getBoundingClientRect();
+//   const activeItemCenter = activeItemRect.top + activeItemRect.height / 2;
+//   const treeBodyCenter = treeBodyRect.top + treeBodyRect.height / 2;
+//   const scrollPosition = activeItemCenter - treeBodyCenter + treeBody.scrollTop;
+
+//   treeBody.scrollTo({
+//     top: scrollPosition,
+//     behavior: 'smooth'
+//   });
+// }
+
+// }
+
+
+// function manageTreeSession(selector, classes) {
+//   // expand tree view 
+//   document.getElementById('tree-expand-all').click()
+
+//   // remove all data-active-item attributes that aren't selector or in active_multiselect
+//   // Get all data-active-item, then check if they are in active_multiselect
+//   const activeItems = document.querySelectorAll('[data-active-item]');
+//   activeItems.forEach(item => {
+//     const itemSelector = item.getAttribute('data-active-item');
+//     if (itemSelector !== selector && !window.active_multiselect.includes(itemSelector)) {
+//       item.removeAttribute('data-active-item');
+//     }
+//   });
+
+//   // for each item in active_multiselect, add data-active-item attribute to the clicked item
+//   window.active_multiselect.forEach(item => {
+//     console.log('Tree Active Multiselect:', item);
+//     const treeViewItem = document.querySelector(`.tree-view-item[data-selector="${item}"] .tree-view-item-content-wrapper`);
+//     console.log('Tree View Item:', treeViewItem)
+//     if (treeViewItem) {
+//       treeViewItem.setAttribute('data-active-item', item);
+//     }
+//   });
+
+//   // now scroll #tree-body to the data-active-item that is selector
+// // now scroll #tree-body to the data-active-item that is selector
+// const treeBody = document.getElementById('tree-body');
+// const activeItem = document.querySelector(`.tree-view-item[data-selector="${selector}"] .tree-view-item-content-wrapper`);
+
+// // Scroll to the active item smoothly and position it in the middle
+// if (activeItem) {
+//   const activeItemRect = activeItem.getBoundingClientRect();
+//   const treeBodyRect = treeBody.getBoundingClientRect();
+//   const activeItemCenter = activeItemRect.top + activeItemRect.height / 2;
+//   const treeBodyCenter = treeBodyRect.top + treeBodyRect.height / 2;
+//   const scrollPosition = activeItemCenter - treeBodyCenter + treeBody.scrollTop;
+
+//   treeBody.scrollTo({
+//     top: scrollPosition,
+//     behavior: 'smooth'
+//   });
+// }
  
 
-}
+// }
 
 // add data-active-item to all selectors in window.active_multiselect
 function updatePreviewActiveItems() {
@@ -232,7 +281,7 @@ function updatePlainAttributesEditor() {
     return `${attr.key}="${encodedValue}"`;
   }).join('\n\n---\n\n');  // Add a double newline to create a blank line between attributes
 
-  plainAttributesAceEditor.setValue(attributeList, -1);
+  attributesEditor.setValue(attributeList, -1);
 }
 
 function setManagerSession(targetElement, classes) {
@@ -242,21 +291,24 @@ function setManagerSession(targetElement, classes) {
   window.active_selector = el_selector;
   window.active_selector_classes = classes;
   window.active_attribute = null;
+  window.active_el_tag = null;
 
  
    
     var trueElement = doc.querySelector(el_selector);
     // Check if trueElement exists and is either main#lc-main or a descendant of it
-  if (!trueElement || !trueElement.closest('main#lc-main')) {
-    return;
-  } else {
+    // Set window.active_el_tag to the tag name of the trueElement
+    if (trueElement && trueElement.closest('main#lc-main')) {
+      AgnosticState.active_el_tag = trueElement.tagName.toLowerCase();
+    }
+
     // Set outerHTML to the editor
     trueElement.outerHTML = html_beautify(trueElement.outerHTML);
     // replace &amp;&amp; with &&
-    const cleanHTML = html_beautify(trueElement.innerHTML).replace(/&amp;&amp;/g, '&&');
-    window.content_editor.setValue(cleanHTML);
+    const cleanHTML = prettyTwig(trueElement.innerHTML);
+    window.innerHTMLEditor.setValue(cleanHTML);
     
-  }
+
     generateAttributesContext(trueElement);
 
     // Check if the sidebar is relevant
@@ -265,7 +317,7 @@ function setManagerSession(targetElement, classes) {
     const organize = organizeSiulaClasses(classes.join(' '));
     
     // Update Selection Menu
-    lc_tweak_editor.session.setValue(organize);
+    classManagerEditor.session.setValue(organize);
 
     console.log('Active Selector:', el_selector);
     console.log('Active Selector Classes:', classes);
@@ -274,7 +326,6 @@ function setManagerSession(targetElement, classes) {
     // Add data-active-item attribute to the clicked item
     targetElement.setAttribute('data-active-item', el_selector);
 
-    manageTreeSession(el_selector, classes);
 
     // Remove all empty classes from elements class> class="" or class=" " from the previewElements 
     const preview = document.getElementById('previewiframe');
@@ -285,7 +336,10 @@ function setManagerSession(targetElement, classes) {
         element.removeAttribute('class');
       }
     });
-
+  
+  setTimeout(() => {
+    // reManageTreeSession();
+  }, 10);
 }
 
 
@@ -350,7 +404,7 @@ function attachIframeClickListener(iframe) {
           iframe.contentDocument.querySelectorAll('[data-active-item]').forEach(item => {
             item.removeAttribute('data-active-item');
           });
-           window.tweaks.restore();
+          //  window.tweaks.restore();
           console.log('Click Event:', selector);
           window.active_multiselect = [CSSelector(targetElement)];
           setManagerSession(targetElement, classes);
@@ -887,11 +941,26 @@ $(document).on('click', '#query-items > div', function() {
 });
 
 
+// Renamed debounce function
+function lcDebounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
+// Renamed debounced version of render_dynamic_templating_twig
+const lcDebouncedRenderDynamicTwig = lcDebounce(render_dynamic_templating_twig, 300);
+
+// Updated processTwigElements function
 function processTwigElements() {
     const iframe = document.getElementById('previewiframe');
     // Get all lc-dynamic-twig elements within the iframe
-    // send for twig processing
-    render_dynamic_templating_twig();
+    // Call the debounced version with the new name
+    lcDebouncedRenderDynamicTwig();
 }
 
 function render_dynamic_templating_twig() {
@@ -1002,13 +1071,13 @@ document.addEventListener('lcUpdatePreview', function(event) {
         }
 
 function sortPicoClasses() {
-            var classes = lc_tweak_editor.getValue();
+            var classes = classManagerEditor.getValue();
             classes.split('\n').join(' ');
 
             const organize = organizeSiulaClasses(classes);
 
             // Update the editor
-            lc_tweak_editor.setValue(organize);
+            classManagerEditor.setValue(organize);
         }
 
 // Listen to the document for whenever selector= attribute changes and console.log the changes
@@ -1055,142 +1124,348 @@ const observerOptions = {
 // Start observing the document with the specified options
 selectorAttributeObserver.observe(document, observerOptions);
 
-
-function attachTreeViewItemListener() {
-  $('#tree-body').on('click', '.tree-view-item', function(event) {
-    if ($(event.target).closest('.tree-view-item').is(this)) {
-      var selectorValue = $(this).attr('data-selector');
-
-      try {
-        // Get classes of the selector
-        const element = doc.querySelector(selectorValue);
-        const classes = element ? Array.from(element.classList) : [];
-
-        console.log('Tree Selection', element, classes);
-        console.log('TREE VIEW ITEM SELECTED:', selectorValue, classes);
-
-        setManagerSession(element || null, classes);
-        window.tweaks.restore();
-      } catch (error) {
-        console.error('Error occurred during tree view item click:', error);
-        initTreeView();
-      }
-    }
-  });
+// Simple debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func.apply(this, args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
+
+// Debounced version of setManagerSession
+const debouncedSetManagerSession = debounce(setManagerSession, 300); // Adjust the debounce wait time as needed
+
+
+// // Function to attach the event listener to the tree-view-item
+// function attachTreeViewItemListener() {
+//   // First remove all other listenrs from the tree-body
+//   detachTreeViewItemListener();
+//   $('#tree-body').on('click', '.tree-view-item', function(event) {
+//     // console.log the element being clicked 
+//     reManageTreeSession();
+//     if ($(event.target).closest('.tree-view-item').is(this)) {
+//       var selectorValue = $(this).attr('data-selector');
+
+//       try {
+//         // Get classes of the selector
+//         const element = doc.querySelector(selectorValue);
+//         const classes = element ? Array.from(element.classList) : [];
+
+//         console.log('Tree Selection', element, classes);
+//         console.log('TREE VIEW ITEM SELECTED:', selectorValue, classes);
+
+//         reManageTreeSession();
+        
+//         // Use the debounced function
+//         debouncedSetManagerSession(element || null, classes);        window.tweaks.restore();
+//       } catch (error) {
+//         console.error('Error occurred during tree view item click:', error);
+//         initTreeView();
+//       }
+//     }
+//   });
+// }
 
 function detachTreeViewItemListener() {
   $('#tree-body').off('click', '.tree-view-item');
 }
 
 // Attach the listener when #tree-body is inserted into the DOM
-$(document).on('DOMNodeInserted', '#tree-body', function() {
-  attachTreeViewItemListener();
-});
+// $(document).on('DOMNodeInserted', '#tree-body', function() {
+//   attachTreeViewItemListener();
+// });
 
 // // CSS styles for empty elements
 var emptyDivStyles = `
-[data-canvas-block]:empty:not([class]) {
-  /* Styles for empty elements with [data-canvas-block] attribute and no classes */
-  background-color: #f0f0f0;
-  border: 1px dashed #999;
+/* Hide X axis */
+ #lc-main {
+    overflow-x: hidden!important;
+  }
+
+/* Hide LC Interface */
+#lc-interface {
+  display: none!important;
+}
+
+/* General Empty Element Styles */
+*:empty:not([class]):not([id]) {
+  background-color: #f7f7f7;
+  border: 1px dashed #ccc;
   min-height: 50px;
 }
 
 div:empty:not([class]):not([id]) {
   display: block;
-  background: repeating-linear-gradient(-45deg, #ffe6ff, #e1ffff 5px, white 5px);
-  border: 1px solid #333;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
 }
 
 div:empty:not([class]):not([id]):before {
   display: block;
   content: "DIV";
-  text-align: center;
   margin: 20px 0px;
-  font-size: 11px;
+  font-size: 14px;
   text-transform: uppercase;
-  font-family: Arial;
-  color: #333;
+  font-family: Arial, sans-serif;
+  color: #666;
 }
 
 div:empty:not([class]):not([id]):hover {
   cursor: pointer;
 }
 
-div:empty:not([class]):not([id]) {
-  border: 1px dashed #333;
-}
-
-div:empty:not([class]):not([id]):after {
-  font-size: 14px;
-  text-decoration: none;
-  color: #999;
-}
-
 .container:empty {
   display: block;
-  background: repeating-linear-gradient(-45deg, #ffe6ff, #e1ffff 5px, white 5px);
-  border: 1px solid #333;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
 }
 
 .container:empty:before {
   display: block;
   content: "CONTAINER";
-  text-align: center;
   margin: 20px 0px;
-  font-size: 11px;
+  font-size: 14px;
   text-transform: uppercase;
-  font-family: Arial;
-  color: #333;
+  font-family: Arial, sans-serif;
+  color: #666;
 }
 
 .container:empty:hover {
   cursor: pointer;
 }
 
-.container:empty {
-  border: 1px dashed #333;
-}
-
-.container:empty:after {
-  font-size: 14px;
-  text-decoration: none;
-  color: #999;
-}
-
 a[href="#"]:empty:not([class]):not([id]) {
   display: inline-block;
-  background: repeating-linear-gradient(-45deg, #ffe6ff, #e1ffff 5px, white 5px);
-  border: 1px solid #333;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
   text-decoration: none;
+  text-align: center;
 }
 
 a[href="#"]:empty:not([class]):not([id]):before {
   display: inline-block;
   content: "LINK";
-  text-align: center;
   margin: 5px;
-  font-size: 11px;
+  font-size: 14px;
   text-transform: uppercase;
-  font-family: Arial;
-  color: #333;
+  font-family: Arial, sans-serif;
+  color: #666;
 }
 
 a[href="#"]:empty:not([class]):not([id]):hover {
   cursor: pointer;
 }
 
-a[href="#"]:empty:not([class]):not([id]) {
-  border: 1px dashed #333;
+/* Flex Empty Block Styles */
+.flex:empty {
+  display: flex;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
 }
 
-a[href="#"]:empty:not([class]):not([id]):after {
+.flex:empty:before {
+  content: "FLEX ROW";
   font-size: 14px;
-  text-decoration: none;
-  color: #999;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
 }
-  
+
+.flex:empty:hover {
+  cursor: pointer;
+}
+
+/* Flex Column Empty Block Styles */
+.flex-col:empty {
+  display: flex;
+  flex-direction: column;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-col:empty:before {
+  content: "FLEX COL";
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+.flex-col:empty:hover {
+  cursor: pointer;
+}
+/* General Empty Element Styles */
+*:empty:not([class]):not([id]) {
+  background-color: #f7f7f7;
+  border: 1px dashed #ccc;
+  min-height: 50px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+div:empty:not([class]):not([id]) {
+  display: block;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+div:empty:not([class]):not([id]):before {
+  display: block;
+  content: "DIV";
+  margin: 20px 0px;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+div:empty:not([class]):not([id]):hover {
+  cursor: pointer;
+}
+
+.container:empty {
+  display: block;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.container:empty:before {
+  display: block;
+  content: "CONTAINER";
+  margin: 20px 0px;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+.container:empty:hover {
+  cursor: pointer;
+}
+
+a[href="#"]:empty:not([class]):not([id]) {
+  display: inline-block;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-decoration: none;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+a[href="#"]:empty:not([class]):not([id]):before {
+  display: inline-block;
+  content: "LINK";
+  margin: 5px;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+a[href="#"]:empty:not([class]):not([id]):hover {
+  cursor: pointer;
+}
+
+/* Flex Empty Block Styles */
+.flex:empty {
+  display: flex;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.flex:empty:before {
+  content: "FLEX ROW";
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+.flex:empty:hover {
+  cursor: pointer;
+}
+
+/* Flex Column Empty Block Styles */
+.flex-col:empty {
+  display: flex;
+  flex-direction: column;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.flex-col:empty:before {
+  content: "FLEX COL";
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+.flex-col:empty:hover {
+  cursor: pointer;
+}
+
+/* Grid Empty Block Styles */
+.grid:empty {
+  display: grid;
+  background: repeating-linear-gradient(-45deg, #fafafa, #eaeaea 5px, white 5px);
+  border: 1px solid #ddd;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.grid:empty:before {
+  content: "GRID";
+  font-size: 14px;
+  text-transform: uppercase;
+  font-family: Arial, sans-serif;
+  color: #666;
+}
+
+.grid:empty:hover {
+  cursor: pointer;
+}
+
 `;
 
 // Function to inject CSS styles into the iframe
@@ -1593,3 +1868,31 @@ const agnosticSelectorChangeConfig = {
 
 // Start observing the lcHtmlEditorWindow element
 agnosticSelectorChangeObserver.observe(lcHtmlEditorWindow, agnosticSelectorChangeConfig);
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const previewIframe = document.getElementById('previewiframe');
+
+  previewIframe.addEventListener('mouseenter', function() {
+    console.log('Mouse in preview');
+    // when mouse inside preview .lc-overlay in iframe should be opacity: 1
+    const iframe = document.getElementById('previewiframe');
+    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    const overlays = iframeDocument.querySelectorAll('.lc-overlay');
+    overlays.forEach(overlay => {
+      overlay.style.opacity = '1';
+    });
+  });
+
+  previewIframe.addEventListener('mouseleave', function() {
+    console.log('Mouse outside preview');
+
+    // when mouse outside preview .lc-overlay in iframe should be opacity: 0
+    const iframe = document.getElementById('previewiframe');
+    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    const overlays = iframeDocument.querySelectorAll('.lc-overlay');
+    overlays.forEach(overlay => {
+      overlay.style.opacity = '0';
+    });
+  });
+});

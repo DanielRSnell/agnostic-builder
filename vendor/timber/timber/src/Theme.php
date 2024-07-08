@@ -139,7 +139,7 @@ class Theme extends Core implements JsonSerializable
      */
     public function link()
     {
-        return $this->theme->get_stylesheet_directory_uri();
+        return $this->theme->get_template_directory_uri();
     }
 
     /**

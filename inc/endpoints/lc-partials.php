@@ -9,7 +9,7 @@ add_action('rest_api_init', function () {
 
 function get_livecanvas_partials($request)
 {
-    $child_theme_dir = get_stylesheet_directory();
+    $child_theme_dir = get_template_directory();
     $partials_dir = $child_theme_dir . '/template-livecanvas-partials';
     $partials = array();
 

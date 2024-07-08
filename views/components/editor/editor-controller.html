@@ -1,0 +1,264 @@
+<div class="p-4">
+  <div x-show="activeTab === 'editor'" class="space-y-4 lg:space-y-6">
+    <div id="class-attribute-manager" class="flex flex-col h-[250px] lg:h-[calc(33vh-2rem)] max-h-[250px]">
+      <div class="flex items-center justify-between p-2 rounded-t-lg bg-base-100">
+        <span class="text-xs font-semibold">Classes</span>
+        <div class="flex space-x-2">
+          <i class="text-xs ri-layout-grid-line"></i>
+          <i class="text-xs ri-layout-row-line"></i>
+          <i class="text-xs ri-layout-column-line"></i>
+          <i class="text-xs ri-layout-masonry-line"></i>
+        </div>
+      </div>
+      <div class="flex-grow overflow-y-auto bg-black border rounded-b-lg border-base-content/20">
+        <div id="class-manager-editor" class="w-full h-full overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <div class="my-0 divider"></div>
+
+    <div id="inner-html-manager" class="flex flex-col h-[250px] lg:h-[calc(33vh-2rem)] max-h-[250px]">
+      <div class="flex items-center justify-between p-2 rounded-t-lg bg-base-100">
+        <span class="text-xs font-semibold">InnerHTML </span>
+        <div class="flex space-x-2">
+          <i class="text-xs ri-code-line"></i>
+          <i class="text-xs ri-braces-line"></i>
+          <i class="text-xs ri-brackets-line"></i>
+          <i class="text-xs ri-parentheses-line"></i>
+        </div>
+      </div>
+      <div class="flex-grow overflow-y-auto bg-black border rounded-b-lg border-base-content/20">
+        <div id="inner-html-editor" class="w-full h-full overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <div class="my-0 divider"></div>
+
+    <div id="attributes-manager" class="flex flex-col h-[250px] lg:h-[calc(33vh-2rem)] max-h-[250px]">
+      <div class="flex items-center justify-between p-2 rounded-t-lg bg-base-100">
+        <span class="text-xs font-semibold">Attributes</span>
+        <div class="flex space-x-2">
+          <i class="text-xs ri-at-line"></i>
+          <i class="text-xs ri-key-line"></i>
+          <i class="text-xs ri-hashtag"></i>
+          <i class="text-xs ri-price-tag-3-line"></i>
+        </div>
+      </div>
+      <div class="flex-grow overflow-y-auto bg-black border rounded-b-lg border-base-content/20">
+        <div id="attributes-editor" class="w-full h-full overflow-y-auto"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/editor/editor.main.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
+<script type="text/javascript" src="https://unpkg.com/monaco-themes/dist/monaco-themes.js"></script>
+
+<script id="editor-store">
+document.addEventListener('alpine:init', () => {
+  Alpine.store('editors', {
+    innerHTML: '',
+    classManager: [],
+    attributes: [],
+    tw_config: '',
+    tw_css: '',
+    configs: defaultEditorConfigs(),
+    activeTheme: 'vs-dark',
+    themes: ['vs', 'vs-dark', 'hc-black', 'daisyDark', 'hc-light'],
+    editorsInitialized: false,
+
+    onEditorChange(editor, value) {
+      this[editor] = value
+    },
+
+    getEditorConfig(editor) {
+      return {
+        ...this.configs.defaultOptions,
+        ...this.configs[editor],
+        theme: this.activeTheme
+      }
+    },
+
+    setTailwindConfig(config) {
+      this.tw_config = config
+      if (window.configEditor) {
+        window.configEditor.setValue(config)
+      }
+    },
+
+    setTailwindCSS(css) {
+      this.tw_css = css
+      if (window.cssEditor) {
+        window.cssEditor.setValue(css)
+      }
+    },
+    setTheme(theme) {
+      this.activeTheme = theme
+      this.updateAllEditors()
+    },
+    setEditorDefaultValues() {
+      console.log('Updating all editor values from state')
+        // window.classManagerEditor.setValue(this.classManager)
+        // window.innerHTMLEditor.setValue(this.innerHTML)
+        // window.attributesEditor.setValue(JSON.stringify(this.attributes, null, 2))
+        window.configEditor.setValue(this.tw_config)
+        window.cssEditor.setValue(this.tw_css)
+    },
+
+    updateAllEditors() {
+      if (typeof window.updateMonacoEditorsTheme === 'function') {
+        window.updateMonacoEditorsTheme(this.activeTheme)
+      }
+    },
+
+    initializeEditor(editorType, monacoInstance) {
+      window[`${editorType}Editor`] = monacoInstance
+      if (Object.keys(this.configs).length - 1 === Object.keys(window).filter(key => key.endsWith('Editor')).length) {
+        // this.editorsInitialized = true
+        // this.setEditorDefaultValues()
+      }
+    }
+  })
+
+  window.AgnosticEditorStore = Alpine.store('editors')
+})
+
+function defaultEditorConfigs() {
+  const defaultOptions = {
+    theme: 'vs-dark',
+    fontSize: 10,
+    lineNumbers: 'on',
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    automaticLayout: true,
+    wrappingStrategy: 'advanced',
+    wordWrap: 'on',
+    wrappingIndent: 'indent',
+    folding: true,
+    renderLineHighlight: 'none',
+    scrollbar: {
+      vertical: 'hidden',
+      horizontal: 'hidden'
+    },
+    padding: {
+      top: 4,
+      bottom: 4
+    },
+    overviewRulerLanes: 0,
+    overviewRulerBorder: false,
+    tabSize: 0,
+    insertSpaces: false
+  }
+
+  return {
+    defaultOptions,
+    classManager: {
+      language: 'html',
+      elementId: 'class-manager-editor'
+    },
+    innerHTML: {
+      language: 'html',
+      elementId: 'inner-html-editor'
+    },
+    attributes: {
+      // Should be JSON
+      language: 'json',
+      elementId: 'attributes-editor'
+    },
+    config: {
+      language: 'javascript',
+      elementId: 'config-editor'
+    },
+    css: {
+      language: 'css',
+      elementId: 'css-editor'
+    }
+  }
+}
+</script>
+
+<script>
+require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs' } })
+window.MonacoEnvironment = {
+  getWorkerUrl: function (workerId, label) {
+    return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+      self.MonacoEnvironment = {
+        baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/'
+      };
+      importScripts('https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/base/worker/workerMain.js');`)}`
+  }
+}
+
+function initializeMonacoEditor(editorType) {
+  const config = window.AgnosticEditorStore.getEditorConfig(editorType)
+  const editorElement = document.getElementById(config.elementId)
+
+  if (!editorElement) {
+    console.error(`Editor element not found: ${config.elementId}`)
+    return null
+  }
+
+  var editor = monaco.editor.create(editorElement, config)
+
+  editor.onDidChangeModelContent(() => {
+    window.AgnosticEditorStore.onEditorChange(editorType, editor.getValue())
+  })
+
+  window.AgnosticEditorStore.initializeEditor(editorType, editor)
+
+  return editor
+}
+
+function initializeEditors() {
+  defineMonacoTheme()
+  const editorTypes = Object.keys(window.AgnosticEditorStore.configs).filter((key) => key !== 'defaultOptions')
+
+  editorTypes.forEach((editorType) => {
+    initializeMonacoEditor(editorType)
+  })
+
+  window.updateMonacoEditorsTheme = function (theme) {
+    monaco.editor.setTheme(theme)
+  }
+}
+
+function defineMonacoTheme() {
+  monaco.editor.defineTheme('daisyDark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: '', foreground: 'F8F8F8', background: '0C1021' },
+      { token: 'comment', foreground: 'AEAEAE' },
+      { token: 'constant', foreground: 'D8FA3C' },
+      { token: 'entity', foreground: 'FF6400' },
+      { token: 'keyword', foreground: 'FBDE2D' },
+      { token: 'storage', foreground: 'FBDE2D' },
+      { token: 'string', foreground: '61CE3C' },
+      { token: 'support', foreground: '8DA6CE' },
+      { token: 'variable', foreground: 'FF6400' }
+    ],
+    colors: {
+      'editor.foreground': '#F8F8F8',
+      'editor.background': '#0C1021',
+      'editor.selectionBackground': '#253B76',
+      'editor.lineHighlightBackground': '#FFFFFF0F',
+      'editorCursor.foreground': '#FFFFFFA6',
+      'editorWhitespace.foreground': '#FFFFFF40'
+    }
+  })
+}
+
+window.addEventListener('resize', function () {
+  monaco.editor.getEditors().forEach((editor) => editor.layout())
+})
+
+require(['vs/editor/editor.main'], function () {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeEditors)
+  } else {
+    initializeEditors()
+  }
+})
+</script>

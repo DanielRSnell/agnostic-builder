@@ -16,6 +16,16 @@
 </div>
 
 <script>
+  function updateStructureTree() {
+    const treeEl = (document.getElementById('tree-body').innerHTML = renderTreeHTMLStructure('main#lc-main'))
+  
+    createTreeHTML(treeEl)
+  
+    setTimeout(() => {
+      reManageTreeSession()
+    }, 10)
+  }
+  
   // Function to initialize the tree view
   function initTreeView() {
     const treeBoxContainer = document.getElementById('treebox-container')
@@ -42,209 +52,232 @@
 </script>
 
 <style>
+  :root {
+    --tree-space: 8px; /* Reduced space */
+    --tree-color-lightgrey: #ccc;
+    --tree-color-secondary: #888;
+    --tree-color-accent: #61dafb;
+    --tree-color1: #0070f3;
+    --tree-color2: #ff9800;
+    --tree-color-accents: #333;
+    --tree-color-interface-bg: #0e0e0e;
+    --tree-color-interface-bg-dark: #1a1a1a;
+  }
+  
   /* Treebox Container */
   .treebox-container {
-    position: fixed;
-    right: 0;
-    top: var(--maintoolbar-height);
-    width: 375px;
-    margin-left: auto;
-    z-index: 0;
-    height: 100%;
-    padding-bottom: 1.5rem; /* Increased bottom padding */
-    display: flex;
+    position: fixed !important;
+    right: 0 !important;
+    top: var(--maintoolbar-height) !important;
+    width: 375px !important;
+    margin-left: auto !important;
+    z-index: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    background-color: var(--tree-color-interface-bg) !important;
+    border-left: 1px solid #2c2c2c !important;
   }
+  
   #toggle-tree-view {
     display: none !important;
   }
+  
   .relative-treebox-container {
-    position: relative;
-    width: 100%;
-    height: calc(100% - var(--maintoolbar-height));
-    margin-left: auto;
+    position: relative !important;
+    width: 100% !important;
+    height: calc(100% - var(--maintoolbar-height)) !important;
+    margin-left: auto !important;
   }
   
   .tree-box {
-    width: 100%;
-    height: 100%;
-    max-width: 325px;
-    margin-left: auto;
-    display: flex;
-    margin-left: auto;
-    margin-right: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 325px !important;
+    margin-right: auto !important;
+    display: flex !important;
+    margin-right: 0 !important;
+    background-color: var(--tree-color-interface-bg) !important;
+    overflow-x: auto !important;
   }
   
-  // 350 width on default
-  
-  /* .window-container {
-                                    // remove scrollbar
-                                    scrollbar-width: none;
-                                    -ms-overflow-style: none;
-                                    overflow-x: auto;
-                                    width: 325px;
-                                  }
-                                  
-                                  .window-container::-webkit-scrollbar {
-                                    display: none;
-                                  } */
+  #tree-window {
+    opacity: 0;
+    z-index: -999 !important;
+  }
   
   /* Tree Window */
   #tree-window > .window-container {
-    height: 100%;
-    overflow: auto;
-    margin-bottom: 1rem;
-    padding-top: 0.8rem; /* Added top padding */
-    padding-bottom: 1.5rem; /* Increased bottom padding */
-    top: 0;
+    height: 100% !important;
+    overflow: auto !important;
+    margin-bottom: 1rem !important;
+    padding-top: 0.8rem !important;
+    padding-bottom: 1.5rem !important;
+    top: 0 !important;
+    background-color: var(--tree-color-interface-bg) !important;
+    scrollbar-width: none !important; /* For Firefox */
+    -ms-overflow-style: none !important; /* For Internet Explorer and Edge */
+  }
+  
+  /* For Webkit browsers (Chrome, Safari) */
+  #tree-window > .window-container::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  /* Remove webkit scrollbar from all elements */
+  *::-webkit-scrollbar {
+    display: none !important;
   }
   
   /* Tree Body */
   #tree-body {
-    height: calc(100% - 1rem);
-    overflow: auto;
-    margin-right: 52px;
-    /* scrollbar-width: none;
-                              -ms-overflow-style: none; */
-    background-color: var(--color-interface-bg-dark);
-    padding-bottom: 1.5rem; /* Added bottom padding */
+    height: 100% !important;
+    width: 100% !important;
+    user-select: none !important;
+    --tree-space: 8px !important; /* Reduced space */
+    overflow: auto !important;
+    background-color: var(--tree-color-interface-bg) !important;
+    padding-bottom: 1.5rem !important;
   }
-  
-  /* #tree-body::-webkit-scrollbar {
-                              display: none;
-                            } */
   
   /* Tree Head */
   #tree-head {
-    position: sticky;
-    top: 0;
-    left: 0;
-    display: flex;
-    z-index: 1;
-    gap: 3px;
-    justify-content: space-between;
-    padding: 6px 10px;
-    font-size: 11px;
-    background-color: var(--color-interface-bg-dark);
-    color: var(--color-prop-icons);
-    border-bottom: 1px solid color-mix(in srgb, var(--color-interface-bg-dark) 80%, grey);
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: flex !important;
+    z-index: 1 !important;
+    gap: 3px !important;
+    justify-content: space-between !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    background-color: var(--tree-color-interface-bg-dark) !important;
+    color: #ccc !important;
+    border-bottom: 1px solid #333 !important;
   }
   
   #tree-head a {
-    color: var(--color-grey-2);
-    text-decoration: none;
+    color: #ccc !important;
+    text-decoration: none !important;
   }
   
   #tree-head a:hover {
-    color: var(--color2);
-  }
-  
-  #tree-head a#tree-expand-all {
-    margin: 0 3px 0 0;
+    color: #fff !important;
   }
   
   #tree-head a#tree-expand-all::before {
-    content: '\f065';
-    font: normal normal normal 10px / 1 FontAwesome;
-    margin: 0 3px 0 0;
+    content: '\f065' !important;
+    font: normal normal normal 10px / 1 FontAwesome !important;
+    margin: 0 3px 0 0 !important;
   }
   
   #tree-head a#tree-collapse-all::before {
-    content: '\f066';
-    font: normal normal normal 10px / 1 FontAwesome;
-    margin: 0 3px 0 0;
+    content: '\f066' !important;
+    font: normal normal normal 10px / 1 FontAwesome !important;
+    margin: 0 3px 0 0 !important;
   }
   
   /* Tree Structure */
-  #tree-body {
-    width: 100%;
-    user-select: none;
-    --space: 16px;
-  }
-  
   .tree-view-container {
-    margin-top: 0;
-    padding: 0 12px;
+    margin-top: 0 !important;
+    padding: 0 12px !important;
   }
   
   .tree-view-item {
-    display: block;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-    color: var(--color-lightgrey);
-    font-size: 12px;
-    white-space: nowrap;
-    position: relative;
+    display: block !important;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace !important;
+    color: var(--tree-color-lightgrey) !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    position: relative !important;
+    padding-left: 10px !important;
+    margin-bottom: 2px !important; /* Reduced margin between items */
   }
   
   .tree-view-item.active {
-    outline: 1px solid var(--color2);
-    color: white;
-    width: fit-content;
+    outline: 1px solid var(--tree-color2) !important;
+    color: white !important;
+    width: fit-content !important;
   }
   
-  .tree-view-item-content-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: fit-content;
-    padding: calc(var(--space) * 0.3) calc(var(--space) * 0.4);
+  #tree-body > .tree-view-item-content-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: fit-content !important;
+    padding: 4px 8px !important; /* Reduced padding for a more compact look */
+    background-color: #334155 !important;
   }
   
   .tree-view-item-content-wrapper:hover {
-    background-color: var(--color-accents);
-    cursor: pointer;
+    background-color: var(--tree-color-accents) !important;
+    cursor: pointer !important;
+  }
+  
+  /* Change the cursor for collapsed or expanded element in the tree */
+  .tree-view-item-content-wrapper:has(+ .tree-children) {
+    cursor: zoom-in !important;
+  }
+  
+  .tree-view-item-content-wrapper:has(+ .tree-children:not([hidden])) {
+    cursor: zoom-out !important;
   }
   
   /* Tree Item Icon */
   .tree-item-icon svg {
-    color: var(--color1);
+    color: var(--tree-color1) !important;
   }
   
   /* Tree Item Tagname */
   .tree-item-tagname {
-    font-weight: bold;
-    opacity: 0.7;
+    font-weight: bold !important;
+    opacity: 0.7 !important;
   }
   
   /* Tree Item ID */
   .tree-item-id {
-    color: var(--color-secondary);
+    color: #00ff00 !important;
   }
   
   /* Tree Item Classes */
   .tree-item-classes {
-    color: var(--color-accent);
+    color: var(--tree-color-accent) !important;
   }
   
   /* Tree Children */
   ul.tree-children {
-    padding-left: var(--space);
-    position: relative;
+    padding-left: var(--tree-space) !important;
+    position: relative !important;
+    list-style-type: none !important;
   }
   
-  ul.tree-children::after {
-    position: absolute;
-    top: 0;
-    left: calc(var(--space) * 0.4);
-    border-right: 1px solid var(--color-accents);
-    content: '';
-    height: calc(100% - (var(--space) * 0.8));
+  /* Example of where lines should go */
+  /* 
+                                                ul.tree-children::before {
+                                                  content: '';
+                                                  position: absolute;
+                                                  top: 0;
+                                                  bottom: 0;
+                                                  left: calc(var(--tree-space) * -0.5);
+                                                  width: 1px;
+                                                  background: var(--tree-color-accents);
+                                                }
+                                                
+                                                ul.tree-children > li::before {
+                                                  content: '';
+                                                  position: absolute;
+                                                  top: 50%;
+                                                  left: calc(var(--tree-space) * -0.5);
+                                                  width: calc(var(--tree-space) * 0.5);
+                                                  height: 1px;
+                                                  background: var(--tree-color-accents);
+                                                }
+                                                */
+  
+  ul.tree-children::before {
+    /* Line example */
   }
   
   ul.tree-children > li::before {
-    position: absolute;
-    top: calc(var(--space) * 0.8);
-    left: calc(var(--space) * -0.6);
-    border-top: 1px solid var(--color-accents);
-    content: '';
-    width: calc(var(--space) * 0.75);
-  }
-  
-  /* Tree Item Cursor */
-  .tree-view-item-content-wrapper:has(+ .tree-children) {
-    cursor: zoom-in;
-  }
-  
-  .tree-view-item-content-wrapper:has(+ .tree-children:not([hidden])) {
-    cursor: zoom-out;
+    /* Line example */
   }
 </style>

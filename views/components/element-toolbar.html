@@ -1,252 +1,126 @@
-<div x-data="sidebar()" class="element__toolbar">
-  <div class="element__group flex-col">
-    <template x-for="element in layout">
-      <div class="element__toolbar-item" :class="'add-' + element.type + '-block'" :data-tippy-content="element.tooltip">
-        <i :class="'ti-' + element.icon"></i>
-      </div>
-    </template>
-  </div>
-  <div class="element__group flex-col">
-    <template x-for="element in basicElements">
-      <div class="element__toolbar-item" :class="'add-' + element.type + '-block'" :data-tippy-content="element.tooltip">
-        <i :class="'ti-' + element.icon"></i>
-      </div>
-    </template>
-  </div>
-  <div class="element__group flex-col">
-    <template x-for="element in formElements">
-      <div class="element__toolbar-item" :class="'add-' + element.type + '-block'" :data-tippy-content="element.tooltip">
-        <i :class="'ti-' + element.icon"></i>
-      </div>
-    </template>
-  </div>
-  <div class="helper__group flex-col">
-    <div class="separator"></div>
-        <template x-for="helper in helpers">
-        <div
-            x-if="helper.type !== 'data'"
-            class="element__toolbar-item"
-            :class="'add-' + helper.type + '-block'"
-            :data-tippy-content="helper.tooltip"
-        >
-            <i :class="'ti-' + helper.icon"></i>
-        </div>
-        <div
-            x-if="helper.type === 'data'"
-            class="element__toolbar-item"
-            :class="'add-' + helper.type + '-block'"
-            :data-tippy-content="helper.tooltip"
-        >
-            <i :class="'ti-' + helper.icon"></i>
-        </div>
-        </template>
-  </div>
-</div>
-
-<style>
-  .element__toolbar {
-    height: 100%;
-    width: 100%;
-    max-width: 52px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-around;
-    background: var(--editor-950);
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 100;
-  }
-
-  .element__group,
-  .helper__group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .element__toolbar-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #b4b7b6;
-    width: 100%;
-    height: clamp(8px, 4vw, 32px); /* Adjust height based on viewport width */
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-
-  .element__toolbar-item:hover {
-    background-color: var(--editor-900);
-  }
-
-  .element__toolbar-item i {
-    font-size: 1rem;
-    color: var(--editor-300);
-  }
-
-  .element__toolbar-item:hover i {
-    color: #b4b7b6;
-  }
-
-  .separator {
-    width: 80%;
-    height: 1px;
-    background-color: var(--editor-800);
-    margin: 10px 0;
-  }
-</style>
-
-<script src="https://unpkg.com/@popperjs/core@2"></script>
-<script src="https://unpkg.com/tippy.js@6"></script>
-
-
 <script>
-  function sidebar() {
-    return {
-      layout: [
-        { type: 'section', icon: 'layout-accordion-separated', tooltip: 'Section' },
-        { type: 'container', icon: 'layout-grid2', tooltip: 'Container' },
-        { type: 'div', icon: 'html5', tooltip: 'Div' },
-        { type: 'block', icon: 'layout-width-default-alt', tooltip: 'Block' },
-        { type: 'grid', icon: 'layout-grid2-thumb', tooltip: 'Grid' },
-        { type: 'column', icon: 'layout-column3', tooltip: 'Column' },
-        { type: 'row', icon: 'layout-column3-alt', tooltip: 'Row' }
-      ],
-      basicElements: [
-        { type: 'basic', icon: 'align-justify', tooltip: 'Basic' },
-        { type: 'paragraph', icon: 'align-justify', tooltip: 'Paragraph' },
-        { type: 'heading', icon: 'text', tooltip: 'Heading' },
-        { type: 'button', icon: 'control-stop', tooltip: 'Button' },
-        { type: 'link', icon: 'link', tooltip: 'Link' },
-        { type: 'image', icon: 'image', tooltip: 'Image' }
-      ],
-      formElements: [
-        { type: 'form', icon: 'layout-list-thumb', tooltip: 'Form' },
-        { type: 'input', icon: 'pencil', tooltip: 'Input' },
-        { type: 'textarea', icon: 'align-justify', tooltip: 'Textarea' },
-        { type: 'select', icon: 'menu-alt', tooltip: 'Select' }
-      ],
-      helpers: [
-        { type: 'data', icon: 'wand', tooltip: 'Data' },
-        { type: 'query', icon: 'rocket', tooltip: 'Query' }
-      ],
-      addBlock(type) {
-        insertBlock(type);
-      }
-    };
-  }
+const quick = {
+    'layout': [
+        {'type': 'section', 'icon': 'layout-2-line', 'tooltip': 'Section'},
+        {'type': 'container', 'icon': 'layout-width-line', 'tooltip': 'Container'},
+        {'type': 'block', 'icon': 'layout-line', 'tooltip': 'Block'},
+        {'type': 'grid', 'icon': 'grid-line', 'tooltip': 'Grid'},
+        {'type': 'column', 'icon': 'layout-column-line', 'tooltip': 'Column'},
+        {'type': 'row', 'icon': 'layout-row-line', 'tooltip': 'Row'}
+    ],
+    'basicElements': [
+        {'type': 'basic', 'icon': 'text', 'tooltip': 'Basic'},
+        {'type': 'paragraph', 'icon': 'paragraph', 'tooltip': 'Paragraph'},
+        {'type': 'heading', 'icon': 'h-1', 'tooltip': 'Heading'},
+        {'type': 'button', 'icon': 'play-circle-line', 'tooltip': 'Button'},
+        {'type': 'link', 'icon': 'link', 'tooltip': 'Link'},
+        {'type': 'image', 'icon': 'image-line', 'tooltip': 'Image'}
+    ],
+    'formElements': [
+        {'type': 'form', 'icon': 'clipboard-line', 'tooltip': 'Form'},
+        {'type': 'input', 'icon': 'pencil-line', 'tooltip': 'Input'},
+        {'type': 'textarea', 'icon': 'text-wrap', 'tooltip': 'Textarea'},
+        {'type': 'select', 'icon': 'list-unordered', 'tooltip': 'Select'}
+    ],
+    'helpers': [
+        {'type': 'data', 'icon': 'database-2-line', 'tooltip': 'Data'},
+        {'type': 'query', 'icon': 'search-line', 'tooltip': 'Query'}
+    ]
+};
 
-  document.addEventListener('DOMContentLoaded', function () {
-    tippy('.element__toolbar-item', {
-      placement: 'left'
-    });
-  });
-</script>
-
-
-<script>
 function insertBlock(type) {
     var selector = active_selector;
-    var blockHTML = '';
+    var blockHTML = null;
+    
+    const selectedBlock = doc.querySelector(selector);
     
     switch(type) {
         case 'section':
-            blockHTML = "<section data-canvas-block='section'></section>";
-            return; // Exit the function since section is handled separately
+            insertSection();
+            return;
         case 'container':
-            blockHTML = "<div class='container' data-canvas-block='container'></div>";
+            blockHTML = "<div class='container mx-auto'></div>";
             $('.close-sidepanel').click();
             break;
         case 'data':
             updateInspectorData();
             break;
         case 'block':
-            blockHTML = '<div class="lc-block" data-canvas-block="block"></div>';
+            blockHTML = '<div class="block"></div>';
             break;
         case 'basic':
-            blockHTML = '<span  data-canvas-block="basic">This is a span</span>';
-            break;
-        case 'div':
-            blockHTML = '<div  data-canvas-block="text"></div>';
+            blockHTML = '<span>This is a span</span>';
             break;
         case 'paragraph':
-            blockHTML = '<p  data-canvas-block="paragraph">Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio debitis praesentium aperiam, dolorem inventore quaerat veritatis fugit omnis, laboriosam aut commodi deserunt odit tempora eum molestias quisquam, maxime quod quasi.</p>';
+            blockHTML = '<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio debitis praesentium aperiam, dolorem inventore quaerat veritatis fugit omnis, laboriosam aut commodi deserunt odit tempora eum molestias quisquam, maxime quod quasi.</p>';
             break;
         case 'heading':
-            blockHTML = '<h1 class="h1" data-canvas-block="heading">This is a header</h1>';
+            blockHTML = '<h1 class="text-4xl font-bold">This is a header</h1>';
             break;
         case 'button':
-            blockHTML = '<button data-canvas-block="button">Get Started</button>';
+            blockHTML = '<button class="btn">Get Started</button>';
             break;
         case 'link':
-            blockHTML = '<a href="#" class="link" data-canvas-block="link"></a>';
+            blockHTML = '<a href="#" class="link">Link</a>';
             break;
         case 'image':
-            blockHTML = '<img src="https://placehold.co/600x400/png" alt="Placeholder Image"  data-canvas-block="image">';
+            blockHTML = '<img src="https://placehold.co/600x400/png" alt="Placeholder Image" class="h-auto max-w-full">';
             break;
         case 'form':
-            blockHTML = '<form  data-canvas-block="form"><input type="text" placeholder="Input" class="input input-bordered w-full max-w-xs"></form>';
+            blockHTML = '<form><input type="text" placeholder="Input" class="w-full max-w-xs input input-bordered"></form>';
             break;
         case 'grid':
-            blockHTML = '<div class="grid grid-cols-3 gap-4" data-canvas-block="grid"><div></div><div></div><div></div></div>';
+            blockHTML = '<div class="grid grid-cols-3 gap-4"></div>';
             break;
         case 'column':
-            blockHTML = '<div class="flex flex-col" data-canvas-block="column">div></div><div></div></div>';
+            blockHTML = '<div class="flex flex-col"></div>';
             break;
          case 'input':
-            blockHTML = '<input type="text" placeholder="Input" class="input input-bordered w-full max-w-xs" data-canvas-block="input">';
+            blockHTML = '<input type="text" placeholder="Input" class="w-full max-w-xs input input-bordered">';
             break;
         case 'textarea':
-            blockHTML = '<textarea placeholder="Textarea" class="textarea textarea-bordered w-full max-w-xs" data-canvas-block="textarea"></textarea>';
+            blockHTML = '<textarea placeholder="Textarea" class="w-full max-w-xs textarea textarea-bordered"></textarea>';
             break;
         case 'select':
-            blockHTML = '<select class="select select-bordered w-full max-w-xs" data-canvas-block="select"><option disabled selected>Select</option><option>Option 1</option><option>Option 2</option></select>';
+            blockHTML = '<select class="w-full max-w-xs select select-bordered"><option disabled selected>Select</option><option>Option 1</option><option>Option 2</option></select>';
             break;
         case 'query':
-            console.log('insertQuery');
             insertQuery();
-            break;
+            return;
         case 'row':
-            blockHTML = '<div class="flex" data-canvas-block="row">>div></div><div></div></div>';
+            blockHTML = '<div class="flex"></div>';
             break;
         default:
-            blockHTML = '<div data-canvas-block="default"></div>';
+            blockHTML = '<div></div>';
     }
-    // console all important information when this fires 
-    // console.log('insertBlock', type, selector, blockHTML);
-    setPageHTML(selector, getPageHTML(selector) + blockHTML);
-    // Emit HTML update event
-    updatePreviewSectorial(selector);
     
-
+    if (blockHTML) {
+        selectedBlock.innerHTML += blockHTML;
+        const clean = html_beautify(selectedBlock.innerHTML);
+        window.content_editor.setValue(clean);
+    }
+      
+    setTimeout(updateStructureTree, 10);
 }
 
-      function insertQuery() {
-        // insert at the start of main#lc-main
-        var content = doc.querySelector('#lc-main').innerHTML
-        // check if there is other posts-loop
-        var loops = doc.querySelectorAll('[lc-helper="posts-loop"]')
-        // set the index of the one to be inserted
-        var index = loops.length + 1
-        const template = `
-          <template lc-helper="posts-loop" class="live-shortcode">
-            [lc_get_posts post_type="post" posts_per_page="6" output_view="lc_get_posts_listing_view" output_dynamic_view_id="query_${index}"]
-          </template>`
-        doc.querySelector('#lc-main').innerHTML = template + content
-        updatePreviewSectorial('#lc-main')
-      }
+function insertQuery() {
+    var content = doc.querySelector('#lc-main').innerHTML;
+    var loops = doc.querySelectorAll('[lc-helper="posts-loop"]');
+    var index = loops.length + 1;
+    const template = `
+      <template lc-helper="posts-loop" class="live-shortcode">
+        [lc_get_posts post_type="post" posts_per_page="6" output_view="lc_get_posts_listing_view" output_dynamic_view_id="query_${index}"]
+      </template>`;
+    doc.querySelector('#lc-main').innerHTML = template + content;
+    updatePreviewSectorial('#lc-main');
+}
 
-// LC Way, to abruptive 
 function insertSection() {
     event.preventDefault();
     $("#sidepanel .close-sidepanel").click();
     myConsoleLog("Let's create a new section");
     
-    var newSectionHTML = "<section data-canvas-block='section'></section>";
+    var newSectionHTML = "<section class='section'></section>";
     var lastSection = document.querySelector("main#lc-main section:last-child");
     
     if (!lastSection || lastSection.getAttribute("ID") !== "global-footer") {
@@ -262,70 +136,29 @@ function insertSection() {
     }
     
     var selector = CSSelector(previewFrame.contents().find("main section:last")[0]);
-    // revealSidePanel("sections", selector);
     $(".sidepanel-tabs a:first").click();
     
     setTimeout(function () {
         previewFrame.contents().find("html, body").animate({ scrollTop: previewFrame.contents().find(selector).offset().top }, 500, 'linear');
     }, 100);
 }
-
-$(document).ready(function() {
-    $('.add-section-block').click(function(e) {
-        insertSection();
-    });
-    // Data block
-    $('.add-data-block').click(function() {
-       toggleEditorData();
-    });
-    // Query block
-    $('.add-query-block').click(function() {
-        insertQuery();
-    });
-
-    $('.add-div-block').click(function() {
-        insertBlock('div');
-    });
-
-    $('.add-container-block').click(function() {
-        insertBlock('container');
-    });
-    $('.add-block-block').click(function() {
-        insertBlock('block');
-    });
-    $('.add-basic-block').click(function() {
-        insertBlock('basic');
-    });
-    $('.add-text-block').click(function() {
-        insertBlock('text');
-    });
-    $('.add-paragraph-block').click(function() {
-        insertBlock('paragraph');
-    });
-    $('.add-heading-block').click(function() {
-        insertBlock('heading');
-    });
-    $('.add-button-block').click(function() {
-        insertBlock('button');
-    });
-    $('.add-link-block').click(function() {
-        insertBlock('link');
-    });
-    $('.add-image-block').click(function() {
-        insertBlock('image');
-    });
-    $('.add-form-block').click(function() {
-        insertBlock('form');
-    });
-    $('.add-grid-block').click(function() {
-        insertBlock('grid');
-    });
-    $('.add-column-block').click(function() {
-        insertBlock('column');
-    });
-    $('.add-row-block').click(function() {
-        insertBlock('row');
-    });
-});
-
 </script>
+
+<div x-data="{ quick: quick }" class="fixed top-0 right-0 flex flex-col items-center justify-around w-full h-full z-100">
+    <template x-for="(category, categoryName) in ['layout', 'basicElements', 'formElements', 'helpers']">
+        <div class="flex flex-col items-center justify-center">
+            <template x-if="categoryName === 'helpers'">
+                <div class="divider w-4/5 my-2.5"></div>
+            </template>
+            <template x-for="element in quick[category]" :key="element.type">
+                <div 
+                    class="w-full h-8 btn btn-ghost btn-sm tooltip tooltip-left" 
+                    :data-tip="element.tooltip"
+                    @click="insertBlock(element.type)"
+                >
+                    <i :class="'ri-' + element.icon + ' text-base'"></i>
+                </div>
+            </template>
+        </div>
+    </template>
+</div>

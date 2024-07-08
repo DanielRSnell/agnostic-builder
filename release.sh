@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Prompt the user for a version number
-echo "Releasing picostrap5"
+echo "Releasing agnostic-blocks"
 
 # Define a subfolder name and zip file name
-SUBFOLDER="picostrap5-child-base"
-ZIP_NAME="picostrap5-child-base.zip"
+SUBFOLDER="agnostic-blocks-child-base"
+ZIP_NAME="agnostic-blocks-child-base.zip"
 
 # Create the subfolder if it doesn't exist
 mkdir -p "$SUBFOLDER"
 
 # Copy the files into the subfolder, excluding unwanted files and directories
-rsync -av --exclude={.git,.gitignore,.DS_Store,picostrap5} ./ "$SUBFOLDER/"
+rsync -av --exclude={.git,.gitignore,.DS_Store,agnostic-blocks} ./ "$SUBFOLDER/"
 
 
 # Check if rsync was successful

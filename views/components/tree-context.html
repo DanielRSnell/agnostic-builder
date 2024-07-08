@@ -1,0 +1,263 @@
+<script>
+window.addEventListener('load', function() {
+  const treeContainer = document.getElementById('agnostic-tree-wrap');
+
+  const menuItems = [
+    { property: 'edit-properties', inner: 'Edit Properties', shortcut: '⌥E' },
+    { property: 'edit-html', inner: 'Edit HTML', shortcut: '⌥H' },
+    { property: 'copy-content', inner: 'Copy', shortcut: '⌥C' },
+    { property: 'cut-content', inner: 'Cut', shortcut: '⌥X' },
+    { property: 'paste-content', inner: 'Paste', shortcut: '⌥V' },
+    { property: 'duplicate-item', inner: 'Duplicate', shortcut: '⌥D' },
+    { property: 'delete-item', inner: 'Delete', shortcut: '⌥⌫' },
+    { property: 'move-up', inner: 'Move Up', shortcut: '⌥↑' },
+    { property: 'move-down', inner: 'Move Down', shortcut: '⌥↓' },
+    { property: 'move-next', inner: 'Move Next', shortcut: '⌥→' },
+    { property: 'move-previous', inner: 'Move Previous', shortcut: '⌥←' },
+  ];
+
+  const hideChoice = ['edit-properties'];
+
+  treeContainer.addEventListener('contextmenu', function(event) {
+    event.preventDefault();
+    const treeBox = event.target.closest('.tree-box');
+    if (treeBox) {
+      createContextMenu(treeBox);
+    }
+  });
+
+  document.addEventListener('click', function(event) {
+    const contextMenu = document.querySelector('.agnostic-context-menu');
+    if (contextMenu && !contextMenu.contains(event.target)) {
+      contextMenu.remove();
+    }
+  });
+
+  function createContextMenu(treeBox) {
+    const existingMenu = document.querySelector('.agnostic-context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
+
+    const contextMenu = document.createElement('div');
+    contextMenu.className = 'agnostic-context-menu menu bg-base-200/30 backdrop-blur-md w-56 rounded-box shadow-lg shadow-base-100/30';
+    
+    const rect = treeBox.getBoundingClientRect();
+    contextMenu.style.position = 'absolute';
+    contextMenu.style.left = `${rect.left}px`;
+    contextMenu.style.top = `${rect.bottom}px`;
+
+    const selector = treeBox.getAttribute('data-selector');
+
+    menuItems.forEach(function(item, index) {
+      if (!hideChoice.includes(item.property)) {
+        const menuItem = document.createElement('li');
+        menuItem.setAttribute('data-tree-item-agnostic', item.property);
+        
+        const menuLink = document.createElement('a');
+        menuLink.className = 'flex justify-between items-center';
+        menuLink.innerHTML = `
+          <span>${item.inner}</span>
+          <span class="badge badge-sm">${item.shortcut}</span>
+        `;
+        
+        menuLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          handleActionItemClick(item.property, selector);
+          contextMenu.remove();
+        });
+        
+        menuItem.appendChild(menuLink);
+        contextMenu.appendChild(menuItem);
+
+        if ((index + 1) % 3 === 0 && index !== menuItems.length - 1) {
+          const separator = document.createElement('li');
+          separator.className = 'divider h-[0.5px]';
+          contextMenu.appendChild(separator);
+        }
+      }
+    });
+
+    document.body.appendChild(contextMenu);
+  }
+
+  document.addEventListener('keydown', handleKeyboardShortcut);
+});
+
+function handleKeyboardShortcut(event) {
+  if (event.altKey) {
+    const activeTreeBox = document.querySelector('.tree-box[data-active="true"]');
+    if (activeTreeBox) {
+      const selector = activeTreeBox.getAttribute('data-selector');
+      switch (event.key) {
+        case 'e': handleActionItemClick('edit-properties', selector); break;
+        case 'h': handleActionItemClick('edit-html', selector); break;
+        case 'c': handleActionItemClick('copy-content', selector); break;
+        case 'x': handleActionItemClick('cut-content', selector); break;
+        case 'v': handleActionItemClick('paste-content', selector); break;
+        case 'd': handleActionItemClick('duplicate-item', selector); break;
+        case 'Backspace': handleActionItemClick('delete-item', selector); break;
+        case 'ArrowUp': handleActionItemClick('move-up', selector); break;
+        case 'ArrowDown': handleActionItemClick('move-down', selector); break;
+        case 'ArrowRight': handleActionItemClick('move-next', selector); break;
+        case 'ArrowLeft': handleActionItemClick('move-previous', selector); break;
+      }
+    }
+  }
+}
+
+function handleActionItemClick(action, selector) {
+  console.log('Clicked action:', action, 'for selector:', selector);
+
+  switch (action) {
+    case 'edit-properties': editProperties(selector); break;
+    case 'edit-html': editHTML(selector); break;
+    case 'copy-content': copyContent(selector); break;
+    case 'cut-content': cutContent(selector); break;
+    case 'paste-content': pasteContent(selector); break;
+    case 'duplicate-item': duplicateItem(selector); break;
+    case 'delete-item': deleteItem(selector); break;
+    case 'move-up': moveUp(selector); break;
+    case 'move-down': moveDown(selector); break;
+    case 'move-next': moveNext(selector); break;
+    case 'move-previous': movePrevious(selector); break;
+    default: console.log('Unknown action:', action);
+  }
+}
+
+function getElement(selector) {
+  return doc.querySelector(selector);
+}
+
+function getPreviewElement(selector) {
+  const preview = document.querySelector('#previewiframe').contentDocument;
+  return preview.querySelector(selector);
+}
+
+function editProperties(selector) {
+  console.log('Edit Properties clicked for', selector);
+}
+
+function editHTML(selector) {
+   $(".close-sidepanel").click();
+   $(".lc-editor-close").click();
+   $("body").addClass("lc-bottom-editor-is-shown");
+   $("#lc-html-editor-window").attr("selector", selector);
+   myConsoleLog("Open html editor for: " + selector);
+   var html = getPageHTML(selector);
+   const cleanHTML = html.replace(/&amp;&amp;/g, '&&');
+   set_html_editor(cleanHTML);
+   $("#lc-html-editor-window").removeClass("lc-opacity-light").fadeIn(100);
+   lc_html_editor.focus();
+   $("#html-tab").click();
+   setTimeout(() => {
+     document.querySelector('a.lc-editor-side').click()
+     window.tweaks.minimize();
+   }, 10);
+}
+
+function copyContent(selector) {
+  console.log('Copy Content clicked for', selector);
+  const element = getElement(selector);
+
+  if (element) {
+    navigator.clipboard.writeText(element.outerHTML).then(function() {
+      console.log('Element copied to clipboard');
+    }, function() {
+      console.error('Failed to copy element to clipboard');
+    });
+  }
+}
+
+function cutContent(selector) {
+  console.log('Cut Content clicked for', selector);
+  const element = getElement(selector);
+  const previewElement = getPreviewElement(selector);
+
+  if (element) {
+    navigator.clipboard.writeText(element.outerHTML).then(function() {
+      console.log('Element cut to clipboard');
+      element.remove();
+      previewElement.remove();
+    }, function() {
+      console.error('Failed to cut element to clipboard');
+    });
+  }
+}
+
+function pasteContent(selector) {
+  console.log('Paste Content clicked for', selector);
+  const ace_editor = window.content_editor;
+  const innerHTML = ace_editor.getValue();
+  navigator.clipboard.readText().then(function(text) {
+    const newHTML = innerHTML + text;
+    ace_editor.setValue(newHTML);
+  }, function() {
+    console.error('Failed to paste element from clipboard');
+  });
+}
+
+function duplicateItem(selector) {
+  console.log('Duplicate clicked for', selector);
+  const element = getElement(selector);
+  const previewElement = getPreviewElement(selector);
+
+  if (element) {
+    const newElement = element.cloneNode(true);
+    const newPreviewElement = previewElement.cloneNode(true);
+    element.after(newElement);
+    previewElement.after(newPreviewElement);
+  }
+}
+
+function deleteItem(selector) {
+  console.log('Delete clicked for', selector);
+  const element = getElement(selector);
+  const previewElement = getPreviewElement(selector);
+
+  if (element) {
+    element.remove();
+    previewElement.remove();
+  }
+}
+
+function moveUp(selector) {
+  console.log('Move Up clicked for', selector);
+  const element = getElement(selector);
+  const previewElement = getPreviewElement(selector);
+
+  if (element) {
+    const previousElement = element.previousElementSibling;
+    const previousPreviewElement = previewElement.previousElementSibling;
+    if (previousElement) {
+      previousElement.before(element);
+      previousPreviewElement.before(previewElement);
+    }
+  }
+}
+
+function moveDown(selector) {
+  console.log('Move Down clicked for', selector);
+  const element = getElement(selector);
+  const previewElement = getPreviewElement(selector);
+
+  if (element) {
+    const nextElement = element.nextElementSibling;
+    const nextPreviewElement = previewElement.nextElementSibling;
+    if (nextElement) {
+      nextElement.after(element);
+      nextPreviewElement.after(previewElement);
+    }
+  }
+}
+
+function moveNext(selector) {
+  console.log('Move Next clicked for', selector);
+  moveDown(selector);
+}
+
+function movePrevious(selector) {
+  console.log('Move Previous clicked for', selector);
+  moveUp(selector);
+}
+</script>

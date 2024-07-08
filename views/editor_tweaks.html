@@ -1,17 +1,111 @@
-{# Include extensions for Livecanvas #}
-{{ include('components/debug.html') }}
-{{ include('components/helper-tags.html') }}
-{{ include('components/class-manager.html') }}
-{{ include('components/tree-view.html') }}
-{{ include('components/responsive.html') }}
-{{ include('components/text-manager.html') }}
-{{ include('components/resource-manager.html') }}
+<!DOCTYPE html>
+<html style="margin-top: 0px!important;">
+<head>
 
-<div id="media-modal" class="modal hidden">
+{% do agnostic_header %}
+{{ include('builder_head_tweaks.html') }}
+</head>
+<body class="bg-neutral text-base-content">
+
+{{ include('components/loader.html') }}
+
+<div id="_build-wrap" style="opacity: 0" x-data="AgnosticManager()" x-init="init">
+{{ include('components/tailwind-manager.html') }}
+
+{# Include extensions for Livecanvas #}
+{# {{ include('components/debug.html') }} #}
+{{ include('components/helper-tags.html') }}
+{# {{ include('components/class-manager.html') }} #}
+{# {{ include('components/tree-view.html') }} #}
+
+{# Sidebar left rework #}
+{{ include('components/left-sidebar') }}
+
+{# {{ include('components/responsive.html') }} #}
+{# {{ include('components/text-manager.html') }} #}
+{# {{ include('components/resource-manager.html') }} #}
+{{ include('components/tree-context.html') }}
+{{ include('components/new-tree.html') }}
+{{ include('components/preview-manager.html') }}
+</div>
+
+
+{# <div id="media-modal" class="hidden modal">
  <iframe id="media-iframe" frameborder="0" scrolling="auto" marginwidth="0" marginheight="0"></iframe>
 </div>
 
+<iframe id="agnostic-tailwind-compiler" src="/agnostic/autocomplete" class="hidden"></iframe> #}
+
+<script>
+// Mkae Agnostic Tailwind Compiler available globally
+window.compiler = document.getElementById('agnostic-tailwind-compiler').contentWindow;
+
+// Make a refresh function for the compiler
+window.refreshCompiler = () => {
+  window.compiler.location.reload();
+};
+
+// Get style tag from compiler head and return it
+window.getStyleTag = () => {
+  // get the style tag with no type or id 
+  const styleTag = window.compiler.document.querySelectorall('style:not([type]):not([id])');
+  return styleTag;
+};
+
+//make it async getSuggestionList function from compiler window which takes a string
+window.getSuggestionList = async (str) => {
+  const completions = await window.compiler.getSuggestionList(str);
+  return completions;
+};
+
+
+</script>
+
+ <script>
+        window.reloadTailwindCSS = function() {
+            const iframe = document.getElementById('previewiframe');
+            if (iframe) {
+                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                const link = iframeDocument.getElementById('agnostic-tailwind-css');
+                if (link) {
+                    const currentHref = link.getAttribute('href');
+                    const newHref = currentHref.split('?')[0] + '?v=' + new Date().getTime();
+                    link.setAttribute('href', newHref);
+                    console.log(`CSS reloaded with href: ${newHref}`);
+                } else {
+                    console.error('Link tag with id "agnostic-tailwind-css" not found in iframe.');
+                }
+            } else {
+                console.error('Iframe with id "previewiframe" not found.');
+            }
+        };
+    </script>
+
+    <script>
+      // In the parent window
+      window.addEventListener('message', function(event) {
+          if (event.data.type === 'tailwindCSSSaved') {
+              console.log('Received message: Tailwind CSS saved in iframe');
+              if (typeof window.reloadTailwindCSS === 'function') {
+                  window.reloadTailwindCSS();
+              } else {
+                  console.error('window.reloadTailwindCSS is not a function');
+              }
+          }
+      });
+
+    </script>
+
 <style>
+
+:root {
+    --maintoolbar-height: 45px;
+}
+
+html {
+  margin-top: 0px!important;
+}
+
  .modal {
    position: fixed;
    top: 0;
@@ -44,6 +138,10 @@
    background-color: #ccc;
    border: none;
    cursor: pointer;
+ }
+
+ #wpadminbar {
+  display: none!important;
  }
 </style>
 
@@ -101,15 +199,60 @@ function closeModal() {
 }
 </script>
 
-<script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
-<script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
+
+
+<div class="hidden w-full h-[var(--maintoolbar-height)] bg-base-100 border-b border-base-content/30 text-base-content select-none">
+  <!-- Content of your maintoolbar -->
+</div>
 
 <script>
-function formatHTML(html) {
-  const formattedHTML = prettier.format(html, {
-    parser: 'html',
-    plugins: [prettierPlugins.html]
-  });
-  return formattedHTML;
+document.addEventListener('DOMContentLoaded', function() {
+    const maintoolbar = document.getElementById('maintoolbar');
+    if (maintoolbar) {
+        maintoolbar.removeAttribute('id');
+        maintoolbar.classList.add('w-full', 'h-[var(--maintoolbar-height)]', 'bg-base-100', 'text-base-content', 'select-none');
+    }
+});
+</script>
+
+<script>
+function CSSelector(el) {
+	var names = [];
+	while (el.parentNode) {
+		if (el.nodeName == "MAIN" && el.id == "agnostic-content") {
+			names.unshift(el.nodeName + '#' + el.id);
+			break;
+		} else {
+			if (el === el.ownerDocument.documentElement || el === el.ownerDocument.body) {
+				names.unshift(el.tagName);
+			} else {
+				for (var c = 1, e = el; e.previousElementSibling; e = e.previousElementSibling, c++) { }
+				names.unshift(el.tagName + ':nth-child(' + c + ')');
+			}
+			el = el.parentNode;
+		}
+	}
+	return names.join(' > ');
 }
 </script>
+
+<script>
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'activeElementsChanged') {
+    const elements = event.data.activeElements;
+    console.log('Active elements changed:', elements);
+    window.AgnosticPreviewStore.setActiveElements(elements);
+  }
+
+   if (event.data.type === 'hoveredElementChanged') {
+    const element = event.data.selector;
+    window.AgnosticTree.onHighlightHoverTreeElement(element);
+  }
+});
+</script>
+
+
+{% do agnostic_footer %}
+</div>
+</body>
+</html>

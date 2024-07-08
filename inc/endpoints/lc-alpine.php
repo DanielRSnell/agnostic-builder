@@ -9,7 +9,7 @@ add_action('rest_api_init', function () {
 
 function get_livecanvas_alpine($request)
 {
-    $child_theme_dir = get_stylesheet_directory();
+    $child_theme_dir = get_template_directory();
     $blocks_dir = $child_theme_dir . '/template-livecanvas-alpine';
     $blocks = array();
 

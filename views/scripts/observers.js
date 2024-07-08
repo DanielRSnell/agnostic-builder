@@ -35,14 +35,14 @@ class LayoutObserver {
     if (slider) {
       // Get .element__toolbar max-width
       const elementToolbar = document.querySelector(".element__toolbar");
-      const elementToolbarMaxWidth = elementToolbar.scrollWidth;
+      // const elementToolbarMaxWidth = elementToolbar.scrollWidth;
       this.setEditorWindowSliderStyle();
       this.previewIframeWrap.style.marginLeft = "auto";
       this.previewIframeWrap.style.marginRight = elementToolbarMaxWidth + "px";
       this.previewIframeWrap.style.width = "60%";
       
       // hide id="tree-body-container"
-      document.querySelector('#tree-body-container').style.display = 'none'
+      // document.querySelector('#tree-body-container').style.display = 'none'
 
     } else {
       this.setEditorWindowSliderStyle();
@@ -115,19 +115,19 @@ setEditorWindowSliderStyle() {
   }
 
   hideElementGroup() {
-    window.tweaks.minimize();
+    // window.tweaks.minimize();
     // window.inspector_data.minimize();
     window.content_box.minimize()
-    document.querySelector('#tree-body-container').style.display = 'none'
+    // document.querySelector('#tree-body-container').style.display = 'none'
     $('#query-container').css('display', 'none')
   }
 
   showElementGroup() {
-    window.tweaks.restore()
+    // window.tweaks.restore()
     window.content_box.restore()
     // window.inspector_data.restore()
     // // remove displays from the style attribute
-    document.querySelector('#tree-body-container').style.removeProperty('display')
+    // document.querySelector('#tree-body-container').style.removeProperty('display')
     $('#query-container').css('display', 'block')
 
   }
@@ -144,7 +144,7 @@ setEditorWindowSliderStyle() {
      this.showElementGroup()
     } else {
       // When the editor window is displayed, hide text / class manager
-      window.tweaks.minimize();
+      // window.tweaks.minimize();
       // window.inspector_data.minimize();
       // window.content_box.minimize()
     }

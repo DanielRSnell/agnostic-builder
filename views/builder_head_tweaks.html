@@ -1,0 +1,71 @@
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/morph@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@imacrayon/alpine-ajax@0.7.0/dist/cdn.min.js"></script>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+{{ function('include_ace_editor_files') }}
+{# <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" /> #}
+    <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+<script src="https://unpkg.com/@shopify/prettier-plugin-liquid/standalone.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-postcss.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+{{ include('styles/tw/compile.html') }}
+
+<script>
+  function prettyTwig(code) {
+    const formattedContent = prettier.format(code, {
+      parser: 'liquid-html',
+      plugins: [prettierPluginLiquid],
+      printWidth: 80,
+      tabWidth: 2,
+      useTabs: false,
+      singleQuote: false,
+      htmlWhitespaceSensitivity: 'css'
+    })
+  
+    return formattedContent
+  }
+  
+  function prettyHTML(code) {
+    const formattedContent = prettier.format(code, {
+      parser: 'html',
+      printWidth: 80,
+      tabWidth: 2,
+      useTabs: false,
+      singleQuote: false,
+      htmlWhitespaceSensitivity: 'css'
+    })
+  
+    return formattedContent
+  }
+  
+  function prettyCSS(code) {
+  return prettier.format(code, {
+    parser: "css",
+    plugins: prettierPlugins,
+  });
+}
+  
+  function prettyJavaScript(code) {
+    const formattedContent = prettier.format(code, {
+      parser: 'babel',
+      plugins: [prettierPlugins.babel],
+      printWidth: 80,
+      tabWidth: 2,
+      useTabs: false,
+      singleQuote: false,
+      htmlWhitespaceSensitivity: 'css'
+    })
+  
+    return formattedContent
+  }
+
+  window.prettierPlugins = prettierPLugins
+</script>
